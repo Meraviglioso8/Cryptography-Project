@@ -155,6 +155,7 @@ The proposed algorithm is the joint or associated algorithm that performs the wo
 - **Optional Hardware Resources:** Switch, router, … (Base on real situation).
 
 5.2 **Contribution**
+|**Student ID**|**Name**|**Work**|
 | :-: | :-: | :-: |
 |21520269|Trần Thị Mỹ Huyền| |
 |21520903|Trương Long Hưng| |
