@@ -168,8 +168,8 @@ The proposed algorithm is the joint or associated algorithm that performs the wo
 |**Submit the project and presentation**|^.^||
 
 5.3 **Contribution**
-|**Student ID**|**Name**|**Work**|
-| :-: | :-: | :-: |
-|21520269|Trần Thị Mỹ Huyền| |
-|21520903|Trương Long Hưng| |
-|21521034|Ngô Tuấn Kiệt| |
+|**Student ID**|**Name**|
+| :-: | :-: |
+|21520269|Trần Thị Mỹ Huyền|
+|21520903|Trương Long Hưng|
+|21521034|Ngô Tuấn Kiệt|
