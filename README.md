@@ -140,8 +140,8 @@ The proposed algorithm is the joint or associated algorithm that performs the wo
 |**Parties**|**MANET’s Users (Data owner)**|
 |**Security Goal**|<p>**Authentication for a transfer session,**</p><p>**Validating the integrity of transferred data**</p>|
 |**Algorithm**|**SHA-256, SHA-512**|
-5.1. **Tools** 
 
+5.1. **Tools** 
 |**TOOLS**|**SPECIFICATION**|
 | :-: | :-: |
 |**Python**|Use for algorithm|
