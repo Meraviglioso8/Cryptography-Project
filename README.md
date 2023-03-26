@@ -10,7 +10,7 @@ Weak security in the MANET may cause the man in the middle attack, a significant
 
 **Figure 1.** Illustration of the mobile ad hoc network (MANET) structure.
 
-![](Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.001.png)
+![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.001.png)
 
 
 
@@ -28,7 +28,7 @@ When two nodes of MANET communicating, Man-In-The-Middle (MITM) attackers put le
 - **Passive Mode:** The communication line between legal nodes can be passively eavesdropped on by an attacker. 
 
 **Figure 2.** Illustration of both the active and passive modes of MITM assaults in MANET.
-- ![](Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.002.png)**Active Mode:** Attackers have the active capability to delay or drop the content of data that is received in a communication.
+- ![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.002.png)**Active Mode:** Attackers have the active capability to delay or drop the content of data that is received in a communication.
 
 
 
@@ -41,7 +41,7 @@ When two nodes of MANET communicating, Man-In-The-Middle (MITM) attackers put le
 
 
 **Figure 3.** Type of MITM attacks in MANET.
-![](Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.003.png)
+![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.003.png)
 
 
 
@@ -56,7 +56,7 @@ When two nodes of MANET communicating, Man-In-The-Middle (MITM) attackers put le
 
 To prevent the MITM attacks, we propose **a** mutual authentication, which usually offer to protect against MITM attacks but using **session token with fingerprint and MAC address validation.**
 
-![](Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.004.png)
+![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.004.png)
 
 
 
@@ -69,9 +69,9 @@ To prevent the MITM attacks, we propose **a** mutual authentication, which usual
 
 
 **Figure 4.** Illustration for proposed Solution.
-![](Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.005.png)
+![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.005.png)
 
-![](Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.006.png)
+![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.006.png)
 
 
 
@@ -80,7 +80,7 @@ To prevent the MITM attacks, we propose **a** mutual authentication, which usual
 
 
 **Figure 5.** Illustration for Transaction process
-![](Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.007.png)
+![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.007.png)
 
 1. **The objective of work**
 
