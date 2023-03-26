@@ -154,7 +154,20 @@ The proposed algorithm is the joint or associated algorithm that performs the wo
 - **Hardware Resources:** Laptop, Smartphone.
 - **Optional Hardware Resources:** Switch, router, … (Base on real situation).
 
-5.2 **Contribution**
+5.2 **Task assignment**
+|**TASK**|**SPECIFICATION**|**MEMBER**|
+| :-: | :-: | :-: |
+|**Research on MANET**|Familiarize yourself with the concept of Mobile Ad-hoc Networks (MANET) and how it works||
+|**Research on mutual authentication**|Study mutual authentication in computer networks and how it can be implemented in MANET. In this case is session token with finger print and mac address validation||
+|**Dessign the system patern**|Develop a system design that includes the details of the mutual authentication protocol. This includes the use of session tokens, fingerprint validation, and MAC address validation.||
+|**Develop the application (Some of features)**|Develop an application that can be used to simulate the MANET environment||
+|**Implement the mutual authentication protocol(Hope we can make this far)**|Implement the mutual authentication protocol using the application which was developed. This includes the generation of session tokens, the validation of fingerprints and MAC addresses, and the exchange of authentication messages between nodes.||
+|**Conduct testing**|Test the implemented protocol to ensure it works as expected||
+|**Evaluate and analyze the results**|Analyze the results of the testing to determine the efficiency and effectiveness of the implemented mutual authentication protocol||
+|**Write the project report**|Write a comprehensive report of the project, which should include the system design, implementation, and testing results, as well as any relevant observations, conclusions, and recommendations.||
+|**Submit the project and presentation**|^.^||
+
+5.3 **Contribution**
 |**Student ID**|**Name**|**Work**|
 | :-: | :-: | :-: |
 |21520269|Trần Thị Mỹ Huyền| |
