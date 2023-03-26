@@ -1,10 +1,10 @@
-﻿**MUTUAL AUTHENTICATION OF MANET’S NODES USING SESSION TOKEN WITH FINGERPRINT AND MAC ADDRESS VALIDATION**
+# MUTUAL AUTHENTICATION OF MANET’S NODES USING SESSION TOKEN WITH FINGERPRINT AND MAC ADDRESS VALIDATION #
 
-1. **Abstract**
+## 1. **Abstract** ##
 
 The mobile node’s property is dynamic, so it isn’t easy to manage security policies. These difficulties present a barrier to building multigene security arrangements that accomplish both assurance and attractive network execution. The proposed work suggests the mutual authentication-based protocol, helping in the handshake between two nodes. 
 
-2. **Motivation**
+## 2. **Motivation** ##
 
 Weak security in the MANET may cause the man in the middle attack, a significant security loophole. Dynamic attacks could perform by deleting messages, sending wrong messages, mimic a node, which causes breaking accessibility, trust, authentication, and serving the Denial of Services (DoS). Because of MANET’s physical limitations, security is an important area where several research works have been introduced, but the dynamic security system is still under process. The necessity of security systems should be dynamic and flexible to be salable. The MANET authentication can be categorized into three areas as data, node, and user level.
 
@@ -21,7 +21,7 @@ Weak security in the MANET may cause the man in the middle attack, a significant
 
 
 
-3. **Scenario**
+## 3. **Scenario** ##
 
 When two nodes of MANET communicating, Man-In-The-Middle (MITM) attackers put legal nodes’ communications at risk by altering their messages. Such assaults have serious effects on the communication, particularly if the message’s content includes information about safety. MANET can meet two types of MITM attack: 
 
@@ -51,7 +51,7 @@ When two nodes of MANET communicating, Man-In-The-Middle (MITM) attackers put le
 
 
 
-4. **Proposed Solution**
+## 4. **Proposed Solution** ##
 4.1. **Solution**
 
 To prevent the MITM attacks, we propose **a** mutual authentication, which usually offer to protect against MITM attacks but using **session token with fingerprint and MAC address validation.**
@@ -132,7 +132,7 @@ The proposed algorithm is the joint or associated algorithm that performs the wo
 
 
 
-5. **Summary**
+## 5. **Summary** ##
 
 |**OBJECTS**|**SPECIFICATION**|
 | :-: | :-: |
