@@ -71,7 +71,7 @@ To prevent the MITM attacks, we propose **a** mutual authentication, which usual
 
 ![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.005.png)
 
-#![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.006.png)
+
 
 
 
