@@ -181,4 +181,3 @@ The proposed algorithm is the joint or associated algorithm that performs the wo
 2. Al-Shareeda, M. A., & Manickam, S. (2022). Man-in-the-Middle Attacks in Mobile Ad Hoc Networks (MANETs): Analysis and Evaluation. Symmetry, 14(8), 1543. 
 3. Bhattacharyya, A., Banerjee, A., Bose, D., & Bhattacharyya, D. (2011, November 17). Different types of attacks in Mobile ADHOC Network. ResearchGate. 
 4. Abass, R., Habyarimana, A., & Tamine, K. (2022). Securing a mobile ad hoc NETwork against the man in the middle attack. International Journal Artificial Intelligent and Informatics, 3(1), 53–62. 
-![image](https://user-images.githubusercontent.com/46748862/229447369-4d9fd7b9-b37c-494c-9d01-283b38edd96d.png)
