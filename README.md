@@ -191,7 +191,7 @@ The proposed algorithm is the joint or associated algorithm that performs the wo
 
 5.4 **References**
 
-1\. Bairwa, A. K., & Joshi, S. (2021). Mutual authentication of nodes using session token with fingerprint and MAC address validation. Egyptian Informatics Journal, 22(4), 479–491. 
-2\. Al-Shareeda, M. A., & Manickam, S. (2022). Man-in-the-Middle Attacks in Mobile Ad Hoc Networks (MANETs): Analysis and Evaluation. Symmetry, 14(8), 1543. 
-3\. Bhattacharyya, A., Banerjee, A., Bose, D., & Bhattacharyya, D. (2011, November 17). Different types of attacks in Mobile ADHOC Network. ResearchGate. 
-4\. Abass, R., Habyarimana, A., & Tamine, K. (2022). Securing a mobile ad hoc NETwork against the man in the middle attack. International Journal Artificial Intelligent and Informatics, 3(1), 53–62. 
+- 1\. Bairwa, A. K., & Joshi, S. (2021). Mutual authentication of nodes using session token with fingerprint and MAC address validation. Egyptian Informatics Journal, 22(4), 479–491. 
+- 2\. Al-Shareeda, M. A., & Manickam, S. (2022). Man-in-the-Middle Attacks in Mobile Ad Hoc Networks (MANETs): Analysis and Evaluation. Symmetry, 14(8), 1543. 
+- 3\. Bhattacharyya, A., Banerjee, A., Bose, D., & Bhattacharyya, D. (2011, November 17). Different types of attacks in Mobile ADHOC Network. ResearchGate. 
+- 4\. Abass, R., Habyarimana, A., & Tamine, K. (2022). Securing a mobile ad hoc NETwork against the man in the middle attack. International Journal Artificial Intelligent and Informatics, 3(1), 53–62. 
