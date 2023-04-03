@@ -131,7 +131,21 @@ The proposed algorithm is the joint or associated algorithm that performs the wo
 
 **Output:** Message Decrypted, Success
 
+4.4. **Using only symmetric algorithms**
 
+
+![337790456_237010375475303_8844392108853675720_n](https://user-images.githubusercontent.com/46748862/229450107-91532521-b287-47ab-b609-f5d22969b319.png)
+
+**Figure 6:** Illustration of Using symmetric algorithms for authentication
+
+
+4.5. **Comparison**
+|**NAME**|**PROPOSED SOLUTION**|**SYMMETRIC SOLUTION**|
+| :-: | :-: | :-: |
+|**Algorithms**|<p>SHA-256,</p> <p>SHA-512, </p> <p>Random</p>|DES,AES,...|
+|**Authentication**|Nodes' number|Public key|
+|**Secure communication**|<p>Session token, </p><p>OTP, </p><p>Transaction ID</p>|Session key|
+|**Trust management**|<p>Subjecttive Observation, </p><p> Link Propagation Capacity,</p><p>Historical Trust Recommendation</p><p>...</p>|<p>Historical Trust Recommendation, </p><p> Neighborhood Sensing</p>|
 
 ## 5. **Summary** ##
 
@@ -177,7 +191,7 @@ The proposed algorithm is the joint or associated algorithm that performs the wo
 
 5.4 **References**
 
-1. Bairwa, A. K., & Joshi, S. (2021). Mutual authentication of nodes using session token with fingerprint and MAC address validation. Egyptian Informatics Journal, 22(4), 479–491. 
-2. Al-Shareeda, M. A., & Manickam, S. (2022). Man-in-the-Middle Attacks in Mobile Ad Hoc Networks (MANETs): Analysis and Evaluation. Symmetry, 14(8), 1543. 
-3. Bhattacharyya, A., Banerjee, A., Bose, D., & Bhattacharyya, D. (2011, November 17). Different types of attacks in Mobile ADHOC Network. ResearchGate. 
-4. Abass, R., Habyarimana, A., & Tamine, K. (2022). Securing a mobile ad hoc NETwork against the man in the middle attack. International Journal Artificial Intelligent and Informatics, 3(1), 53–62. 
+1\. Bairwa, A. K., & Joshi, S. (2021). Mutual authentication of nodes using session token with fingerprint and MAC address validation. Egyptian Informatics Journal, 22(4), 479–491. 
+2\. Al-Shareeda, M. A., & Manickam, S. (2022). Man-in-the-Middle Attacks in Mobile Ad Hoc Networks (MANETs): Analysis and Evaluation. Symmetry, 14(8), 1543. 
+3\. Bhattacharyya, A., Banerjee, A., Bose, D., & Bhattacharyya, D. (2011, November 17). Different types of attacks in Mobile ADHOC Network. ResearchGate. 
+4\. Abass, R., Habyarimana, A., & Tamine, K. (2022). Securing a mobile ad hoc NETwork against the man in the middle attack. International Journal Artificial Intelligent and Informatics, 3(1), 53–62. 
