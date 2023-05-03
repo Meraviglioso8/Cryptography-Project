@@ -32,13 +32,20 @@ organization due to the privacy and security concerns. Service providers must en
 
 
 4.3. **Security Goals**
+
+
+
+
 ![sECURITYGOAL-Page-1 drawio](https://user-images.githubusercontent.com/46748862/235933942-5a0204c0-c2d3-4f49-b8d8-bc6bbe04f339.png)
 
 
 
 4.3. **Research Goals**
 
-![sECURITYGOAL-Copy of Page-1 drawio](https://user-images.githubusercontent.com/46748862/235934555-78811120-20d5-48ce-90c3-009aec9cb688.png)
+
+![sECURITYGOAL-Copy of Page-1](https://user-images.githubusercontent.com/46748862/235934891-6dc8a253-ebcd-48cd-91b7-75b4dd11ce51.png)
+
+
 
 
 ## 5. **Summary** ##
