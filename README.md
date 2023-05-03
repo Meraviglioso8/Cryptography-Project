@@ -12,30 +12,34 @@ organization due to the privacy and security concerns. Service providers must en
 
 
 ## 3. **Scenario** ##
+![Untitled Diagram-Page-1 drawio (1)](https://user-images.githubusercontent.com/46748862/235934185-6391b380-2351-445f-b000-03f309a56086.png)
 
 
-![Untitled Diagram-Page-1 drawio](https://user-images.githubusercontent.com/46748862/235931848-115d51fc-868a-4438-b1e4-11887a1d2710.png)
+
 
 
 
 ## 4. **Proposed Solution** ##
 4.1. **Solution**
 
-![demo plan drawio (3)](https://user-images.githubusercontent.com/46748862/235932145-15f67b02-f606-406d-94f9-e546e177b874.png)
+![demo plan drawio (4)](https://user-images.githubusercontent.com/46748862/235934453-ca7faee2-5a03-4b83-b564-2e6947440bdb.png)
+
 
 
 4.2. **Demo Architecture**
 
+![Untitled Diagram-Copy of Page-1 drawio (1)](https://user-images.githubusercontent.com/46748862/235934317-97daece5-125a-4ca2-ab7b-acbcb682f213.png)
 
-![Untitled Diagram-Copy of Page-1 drawio](https://user-images.githubusercontent.com/46748862/235932162-dbc30f5c-cbe7-4e8b-8fe5-a2acc593ea9c.png)
 
 4.3. **Security Goals**
+![sECURITYGOAL-Page-1 drawio](https://user-images.githubusercontent.com/46748862/235933942-5a0204c0-c2d3-4f49-b8d8-bc6bbe04f339.png)
 
-![sECURITYGOAL-Copy of Page-1 drawio (1)](https://user-images.githubusercontent.com/46748862/235932325-87f2d891-ef6a-40d1-97ce-185426f257c0.png)
+
 
 4.3. **Research Goals**
 
-![sECURITYGOAL-Copy of Page-1 drawio](https://user-images.githubusercontent.com/46748862/235932400-960e7471-16bb-4196-b65b-06b3b0637def.png)
+![sECURITYGOAL-Copy of Page-1 drawio](https://user-images.githubusercontent.com/46748862/235934555-78811120-20d5-48ce-90c3-009aec9cb688.png)
+
 
 ## 5. **Summary** ##
 
