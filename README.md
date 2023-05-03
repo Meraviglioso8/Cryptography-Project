@@ -1,152 +1,41 @@
-# MUTUAL AUTHENTICATION OF MANET’S NODES USING SESSION TOKEN WITH FINGERPRINT AND MAC ADDRESS VALIDATION #
+# A MULTI-FACTOR AUTHENTICATION-BASED IN CLOUD APPLICATIONS #
 
 ## 1. **Abstract** ##
 
-The mobile node’s property is dynamic, so it isn’t easy to manage security policies. These difficulties present a barrier to building multigene security arrangements that accomplish both assurance and attractive network execution. The proposed work suggests the mutual authentication-based protocol, helping in the handshake between two nodes. 
+ A security mechanism is applied to the cloud application that includes
+user registration, granting user privileges, and generating user authentication factor. An intrusion detection system is embedded to the security mechanism to detect malicious users. The multi factor authentication, intrusion detection, and access control techniques can be used for ensuring the identity of the user.
 
 ## 2. **Motivation** ##
+User’s data is considered as a vital asset of several organizations. Migrating data to the cloud computing is not an easy decision for any
+organization due to the privacy and security concerns. Service providers must ensure that both data and applications that will be stored on the cloud should be protected in a secure environment. The data stored on the public cloud will be vulnerable to outside and inside attacks.
 
-Weak security in the MANET may cause the man in the middle attack, a significant security loophole. Dynamic attacks could perform by deleting messages, sending wrong messages, mimic a node, which causes breaking accessibility, trust, authentication, and serving the Denial of Services (DoS). Because of MANET’s physical limitations, security is an important area where several research works have been introduced, but the dynamic security system is still under process. The necessity of security systems should be dynamic and flexible to be salable. The MANET authentication can be categorized into three areas as data, node, and user level.
-
-
-
-![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.001.png)
-
-
-
-
-
-
-
-
-![image](https://user-images.githubusercontent.com/46748862/229504927-02689253-bc56-4573-befe-03d4a7f38cdf.png)
 
 
 ## 3. **Scenario** ##
 
-When two nodes of MANET communicating, Man-In-The-Middle (MITM) attackers put legal nodes’ communications at risk by altering their messages. Such assaults have serious effects on the communication, particularly if the message’s content includes information about safety. MANET can meet two types of MITM attack: 
 
-- **Passive Mode:** The communication line between legal nodes can be passively eavesdropped on by an attacker. 
-- **Active Mode:** Attackers have the active capability to delay or drop the content of data that is received in a communication.
-
-
-![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.002.png)
-
-
-
-
-
-
-
-
-
-
-
-![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.003.png)
-
-
-
-
-
-
+![Untitled Diagram-Page-1 drawio](https://user-images.githubusercontent.com/46748862/235931848-115d51fc-868a-4438-b1e4-11887a1d2710.png)
 
 
 
 ## 4. **Proposed Solution** ##
 4.1. **Solution**
 
-To prevent the MITM attacks, we propose **a** mutual authentication, which usually offer to protect against MITM attacks but using **session token with fingerprint and MAC address validation.**
-
-![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.004.png)
+![demo plan drawio (3)](https://user-images.githubusercontent.com/46748862/235932145-15f67b02-f606-406d-94f9-e546e177b874.png)
 
 
+4.2. **Demo Architecture**
 
 
+![Untitled Diagram-Copy of Page-1 drawio](https://user-images.githubusercontent.com/46748862/235932162-dbc30f5c-cbe7-4e8b-8fe5-a2acc593ea9c.png)
 
+4.3. **Security Goals**
 
+![sECURITYGOAL-Copy of Page-1 drawio (1)](https://user-images.githubusercontent.com/46748862/235932325-87f2d891-ef6a-40d1-97ce-185426f257c0.png)
 
+4.3. **Research Goals**
 
-
-
-
-
-![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.005.png)
-
-![Aspose Words c47eb186-4645-4f67-9718-f333edaa321d 006 (1)](https://user-images.githubusercontent.com/46748862/229301129-f565a3a1-6145-4064-bb85-b3b499b89dc8.png)
-
-
-
-
-
-
-
-
-![](img/Aspose.Words.c47eb186-4645-4f67-9718-f333edaa321d.007.png)
-
-4.2. **The objective of work**
-
-1\. In the mutual authentication based protocol, the MAC address and fingerprint will form the basis of the determination of node, which is the dual authentication basis of node identification. 
-
-2\. Randomization session for transfer by the Generation of Token. Each time the transfer occurs, a new session token is required to be generated to provide more security in the data transfer. To repeat the token generation process, the communicating nodes’ MAC addresses will be needed in the token generation process. 
-
-3\. Dual Security in the data transfer with the generation of OTP and Transaction ID for the receiver’s validation. 
-
-4\. Validating the integrity of the data received with the Hash generation for the message received and comparing it with the hash sent.
-
-4.3. **Algorithm**
-
-The proposed algorithm is the joint or associated algorithm that performs the work based on the sub-algorithms, which are used in the process are as follows: 
-
-- Registering the User in Network  
-- Destination MAC Address Validation  
-- Generation of Token for Message Exchange  
-- Module for Sender End  
-- Module for Receiver
-1. **Algorithm 1: Algorithm for Registration**
-
-**Input:** MAC Address, Fingerprint 
-
-**Output:** Success and Details of node Saved, Unique node Number Generated 
-
-2. **Algorithm 2: Destination MAC Address Validation**
-
-**Input:** Destination node Number. 
-
-**Output:** Success Return MAC Address of node. 
-
-3. **Algorithm 3:** Generation of Token for Message Exchange
-
-**Input:** Sender MAC Address, Destination MAC Address 
-
-**Output**: SESSION\_TOKEN
-
-4. **Algorithm 4:** Module for Sender End
-
-**Input:** Sender MAC Address, Destination MAC Address, SESSION\_TOKEN 
-
-**Output:** OTP and Transaction ID 
-
-5. **Algorithm 5:** Module for Receiver 
-
-**Input:** Sender MAC Address, Destination MAC Address, OTP, Transaction ID 
-
-**Output:** Message Decrypted, Success
-
-4.4. **Using only symmetric algorithms**
-
-
-![337790456_237010375475303_8844392108853675720_n](https://user-images.githubusercontent.com/46748862/229450107-91532521-b287-47ab-b609-f5d22969b319.png)
-
-**Figure 6:** Illustration of Using symmetric algorithms for authentication
-
-
-4.5. **Comparison**
-|**NAME**|**PROPOSED SOLUTION**|**SYMMETRIC SOLUTION**|
-| :-: | :-: | :-: |
-|**Algorithms**|<p>SHA-256,</p> <p>SHA-512, </p> <p>Random</p>|DES,AES,...|
-|**Authentication**|Nodes' number|Public key|
-|**Secure communication**|<p>Session token, </p><p>OTP, </p><p>Transaction ID</p>|Session key|
-|**Trust management**|<p>Subjecttive Observation, </p><p> Link Propagation Capacity,</p><p>Historical Trust Recommendation</p><p>...</p>|<p>Historical Trust Recommendation, </p><p> Neighborhood Sensing</p>|
+![sECURITYGOAL-Copy of Page-1 drawio](https://user-images.githubusercontent.com/46748862/235932400-960e7471-16bb-4196-b65b-06b3b0637def.png)
 
 ## 5. **Summary** ##
 
