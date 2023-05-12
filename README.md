@@ -65,7 +65,6 @@ organization due to the privacy and security concerns. Service providers must en
 |**C# and DotNet**|Use for interface, backend|
 |**Microsoft SQL**|Use for database management|
 |**Git**|Use for version control system|
-|**INET framework/Network Attack (NETA)**|Use for simulating MANET environment and test authentication mechanism  |
 |**Security Libraries (E.g.: Bouncy Castle, OpenSSL )**|Use for implementing some cryptography functions|
 - **Hardware Resources:** Laptop, Smartphone.
 - **Optional Hardware Resources:** Switch, router, … (Base on real situation).
