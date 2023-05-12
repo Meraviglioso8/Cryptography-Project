@@ -70,29 +70,36 @@ organization due to the privacy and security concerns. Service providers must en
 - **Hardware Resources:** Laptop, Smartphone.
 - **Optional Hardware Resources:** Switch, router, … (Base on real situation).
 
-5.2 **Task assignment**
-|**TASK**|**SPECIFICATION**|**MEMBER**|
-| :-: | :-: | :-: |
-|**Research on MANET**|Familiarize yourself with the concept of Mobile Ad-hoc Networks (MANET) and how it works|Team|
-|**Research on mutual authentication**|Study mutual authentication in computer networks and how it can be implemented in MANET. In this case is session token with finger print and mac address validation|Team|
-|**Design the system pattern**|Develop a system design that includes the details of the mutual authentication protocol. This includes the use of session tokens, fingerprint validation, and MAC address validation.|Huyền|
-|**Develop the application (Some of features)**|Develop an application that can be used to simulate the MANET environment|Hưng|
-|**Implement the mutual authentication protocol(Hope we can make this far ^^)**|Implement the mutual authentication protocol using the application which was developed. This includes the generation of session tokens, the validation of fingerprints and MAC addresses, and the exchange of authentication messages between nodes.|Kiệt|
-|**Conduct testing**|Test the implemented protocol to ensure it works as expected|Hưng|
-|**Evaluate and analyze the results**|Analyze the results of the testing to determine the efficiency and effectiveness of the implemented mutual authentication protocol|Kiệt|
-|**Write the project report**|Write a comprehensive report of the project, which should include the system design, implementation, and testing results, as well as any relevant observations, conclusions, and recommendations.|Huyền|
-|**Submit the project and presentation**||Team|
+5.2 **Mid - term Task assignment**
+|**TASK**|**MEMBER**|
+| :-: | :-: |
+|**Research on Idea, Paper, Determine Related Parties, Scenario, Protected Assets, Solution!**|Kiệt, Huyền|
+|**Slide Design**|Huyền|
+|**Task assignments**|Kiệt|
+|**Illustrate idea**|Huyền, Kiệt|
+|**Present idea**|Hưng|
+|**Determine Security Goals, Research Goals,  Implementation plan**|Kiệt, Huyền|
 
-5.3 **Contribution**
+5.3 **Upcoming Task assignment**
+|**TASK**|**MEMBER**|
+| :-: | :-: |
+|**Research on Algorithms, Cloud Platform, Environments, Libraries**|Team|
+|**Controlling implementation of the architecture of the proposed scheme model**|Huyền|
+|**Implementing Database Server**|Hưng|
+|**Implementing the Web Application Server**|Huyền, Kiệt|
+|**Documenting the Demo application**|Huyền|
+|**Presenting the Demo**|Team|
+
+5.4 **Contribution**
 |**Student ID**|**Name**|
 | :-: | :-: |
 |21520269|Trần Thị Mỹ Huyền|
 |21520903|Trương Long Hưng|
 |21521034|Ngô Tuấn Kiệt|
 
-5.4 **References**
+5.5 **References**
 
-- 1\. Bairwa, A. K., & Joshi, S. (2021). Mutual authentication of nodes using session token with fingerprint and MAC address validation. Egyptian Informatics Journal, 22(4), 479–491. 
-- 2\. Al-Shareeda, M. A., & Manickam, S. (2022). Man-in-the-Middle Attacks in Mobile Ad Hoc Networks (MANETs): Analysis and Evaluation. Symmetry, 14(8), 1543. 
-- 3\. Bhattacharyya, A., Banerjee, A., Bose, D., & Bhattacharyya, D. (2011, November 17). Different types of attacks in Mobile ADHOC Network. ResearchGate. 
-- 4\. Abass, R., Habyarimana, A., & Tamine, K. (2022). Securing a mobile ad hoc NETwork against the man in the middle attack. International Journal Artificial Intelligent and Informatics, 3(1), 53–62. 
+- 1\. Said, W., Mostafa, E., Hassan, M., Mostafa, A., & T. (2021, January 1). A Multi-Factor Authentication-Based Framework for Identity Management in Cloud Applications. Tech Science Press. https://doi.org/10.32604/cmc.2022.023554
+- 2\. Framework for client side AES encryption technique in cloud computing. (n.d.). Framework for Client Side AES Encryption Technique in Cloud Computing | IEEE Conference Publication | IEEE Xplore. https://ieeexplore.ieee.org/document/7154763
+
+
