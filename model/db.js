@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 // Replace this with your MONGOURI.
-const MONGOURI = "mongodb+srv://kiet:kiet@kiet.ov07xay.mongodb.net/";
+const MONGOURI = "";
 
 const InitiateMongoServer = async () => {
     try {
