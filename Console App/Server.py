@@ -8,46 +8,6 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(("localhost",9999))
 server.listen()
 
-def createUser(client_socket):
-    if check_permission(client_socket, "createUser"):
-        client_socket.send("Username: ".encode())
-        username = client_socket.recv(1024).decode()
-        client_socket.send("Password: ".encode())
-        password = client_socket.recv(1024).decode()
-        client_socket.send("Role: ".encode())
-        role = client_socket.recv(1024).decode()
-        ph = PasswordHasher
-        hashpass = ph.hash(password)
-
-        sqlConnect = sqlite3.connect("userdata.db")
-        cursor = sqlConnect.cursor()
-        cursor.execute("INSERT INTO userdata (username,password,role) VALUES (?, ?, ?)", (username, hashpass, role))
-        sqlConnect.commit()
-
-        client_socket.send("New user created successfully!".encode)
-    else: client_socket.send("Current user don't have permission to createUser")
-
-        
-def login(client_socket):
-    client_socket.send("Username: ".encode())
-    username = client_socket.recv(1024).decode()
-    client_socket.send("Password: ".encode())
-    password = client_socket.recv(1024).decode()
-
-    ph = PasswordHasher()
-    sqlConnection=sqlite3.connect("userdata.db")
-    cursor=sqlConnection.cursor()
-    data = cursor.execute("SELECT password FROM userdata WHERE username = ?", (username,)).fetchall()[0][0]
-    try:
-        verifyValid = ph.verify(data ,password)
-        client_socket.username = username
-        client_socket.send("Login complete!\n".encode())
-        Menu(client_socket)
-    except:
-        client_socket.send("Login failed!\n".encode())
-        Menu(client_socket)
-
-
 def check_permission(client_socket, permission):
     username = client_socket.username
     sqlConnection = sqlite3.connect("userdata.db")
@@ -71,10 +31,86 @@ def check_permission(client_socket, permission):
     else:
         return False # permission denied
     
-def deleteUser():
-    pass
-def searchData():
-    pass
+def login(client_socket):
+    client_socket.send("Username: ".encode())
+    username = client_socket.recv(1024).decode()
+    client_socket.send("Password: ".encode())
+    password = client_socket.recv(1024).decode()
+
+    ph = PasswordHasher()
+    sqlConnection=sqlite3.connect("userdata.db")
+    cursor=sqlConnection.cursor()
+    data = cursor.execute("SELECT password FROM userdata WHERE username = ?", (username,)).fetchall()[0][0]
+    try:
+        verifyValid = ph.verify(data ,password)
+        client_socket.username = username
+        client_socket.send("Login complete!\n".encode())
+        Menu(client_socket)
+    except:
+        client_socket.send("Login failed!\n".encode())
+        Menu(client_socket)
+
+def createUser(client_socket):
+    if check_permission(client_socket, "create_user"):
+        client_socket.send("Username: ".encode())
+        username = client_socket.recv(1024).decode()
+        client_socket.send("Password: ".encode())
+        password = client_socket.recv(1024).decode()
+        client_socket.send("Role: ".encode())
+        role = client_socket.recv(1024).decode()
+        ph = PasswordHasher
+        hashpass = ph.hash(password)
+
+        sqlConnect = sqlite3.connect("userdata.db")
+        cursor = sqlConnect.cursor()
+        cursor.execute("INSERT INTO userdata (username,password,role) VALUES (?, ?, ?)", (username, hashpass, role))
+        sqlConnect.commit()
+
+        client_socket.send("New user created successfully!".encode)
+    else: client_socket.send("Current user don't have permission to createUser")
+
+def deleteUser(client_socket):
+    if check_permission(client_socket, "delete_user"):
+        client_socket.send("Username to delete: ".encode())
+        username = client_socket.recv(1024).decode().strip()
+        sqlConnection = sqlite3.connect("userdata.db")
+        cursor = sqlConnection.cursor()
+        cursor.execute("""
+            DELETE FROM userdata
+            WHERE username = ?
+        """, (username,))
+        if cursor.rowcount == 1:
+            client_socket.send(f"User {username} deleted successfully!\n".encode())
+            sqlConnection.commit()
+        else:
+            client_socket.send(f"User {username} not found!\n".encode())
+        sqlConnection.close()
+    else:
+        client_socket.send("Current user doesn't have permission to delete users.\n".encode())
+
+def searchData(client_socket):
+    if check_permission(client_socket, "search_data"):
+        client_socket.send("Enter search query: ".encode())
+        query = client_socket.recv(1024).decode().strip()
+        sqlConnection = sqlite3.connect("productdata.db")
+        cursor = sqlConnection.cursor()
+        cursor.execute("""
+            SELECT *
+            FROM product
+            WHERE name LIKE ?
+            OR description LIKE ?
+        """, (f"%{query}%", f"%{query}%"))
+        results = cursor.fetchall()
+        if len(results) > 0:
+            client_socket.send(f"Search results for '{query}':\n".encode())
+            for row in results:
+                client_socket.send(f"ID: {row[0]}\tName: {row[1]}\tDescription: {row[2]}\tPrice: {row[3]}\tStock: {row[4]}\n".encode())
+        else:
+            client_socket.send(f"No results found for '{query}'\n".encode())
+        sqlConnection.close()
+    else:
+        client_socket.send("Current user doesn't have permission to search data.\n".encode())
+
 def insertData():
     pass
 def updateData():
