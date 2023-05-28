@@ -1,7 +1,7 @@
 import sqlite3
-import hashlib
 import socket
 import threading
+from argon2 import PasswordHasher
 
 # server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -9,18 +9,19 @@ server.bind(("localhost",9999))
 server.listen()
 
 def createUser(client_socket):
-    if check_permission(username, "createUser"):
+    if check_permission(client_socket, "createUser"):
         client_socket.send("Username: ".encode())
         username = client_socket.recv(1024).decode()
         client_socket.send("Password: ".encode())
         password = client_socket.recv(1024).decode()
         client_socket.send("Role: ".encode())
         role = client_socket.recv(1024).decode()
+        ph = PasswordHasher
+        hashpass = ph.hash(password)
 
-        password = hashlib.sha3_256(password.encode()).hexdigest()
         sqlConnect = sqlite3.connect("userdata.db")
         cursor = sqlConnect.cursor()
-        cursor.execute("INSERT INTO userdata (username,password,role) VALUES (?, ?, ?)", (username, password, role))
+        cursor.execute("INSERT INTO userdata (username,password,role) VALUES (?, ?, ?)", (username, hashpass, role))
         sqlConnect.commit()
 
         client_socket.send("New user created successfully!".encode)
@@ -33,18 +34,22 @@ def login(client_socket):
     client_socket.send("Password: ".encode())
     password = client_socket.recv(1024).decode()
 
-    password = hashlib.sha3_256(password.encode()).hexdigest()
+    ph = PasswordHasher()
     sqlConnection=sqlite3.connect("userdata.db")
     cursor=sqlConnection.cursor()
-    cursor.execute("SELECT * FROM userdata WHERE username = ? AND password = ?", (username, password))
-
-    if cursor.fetchall():
-        client_socket.send("Login successfully\n".encode())
+    data = cursor.execute("SELECT password FROM userdata WHERE username = ?", (username,)).fetchall()[0][0]
+    try:
+        verifyValid = ph.verify(data ,password)
+        client_socket.username = username
+        client_socket.send("Login complete!\n".encode())
         Menu(client_socket)
-    else:
-        client_socket.send("Login failed\n".encode())
+    except:
+        client_socket.send("Login failed!\n".encode())
+        Menu(client_socket)
 
-def check_permission(username, permission):
+
+def check_permission(client_socket, permission):
+    username = client_socket.username
     sqlConnection = sqlite3.connect("userdata.db")
     cursor = sqlConnection.cursor()
     cursor.execute("""
