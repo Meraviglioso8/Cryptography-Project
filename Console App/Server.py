@@ -107,25 +107,23 @@ def login(client_socket):
         client_socket.send("Login failed!\n".encode())
         Menu(client_socket)
 
-def createUser(client_socket):
-    if check_permission(client_socket, "create_user"):
-        client_socket.send("Username: ".encode())
-        username = client_socket.recv(1024).decode()
-        client_socket.send("Password: ".encode())
-        password = client_socket.recv(1024).decode()
-        client_socket.send("Role: ".encode())
-        role = client_socket.recv(1024).decode()
-        ph = PasswordHasher
-        hashpass = ph.hash(password)
 
-        sqlConnect = sqlite3.connect("userdata.db")
-        cursor = sqlConnect.cursor()
-        cursor.execute("INSERT INTO userdata (username,password,role) VALUES (?, ?, ?)", (username, hashpass, role))
-        sqlConnect.commit()
 
-        client_socket.send("New user created successfully!".encode)
-    else: client_socket.send("Current user don't have permission to createUser")
+def register(c):
+    c.send("Username: ".encode())
+    username = c.recv(1024).decode()
+    c.send("Password: ".encode())
+    password = c.recv(1024).decode()
+    ph = PasswordHasher()
+    hashpass = ph.hash(password)
+    conn = sqlite3.connect("userdata.db")
+    cur = conn.cursor()
+    cur.execute("INSERT INTO userdata (username,password) VALUES (?, ?)", (username,hashpass))
+    conn.commit()
+    c.send("Register successfully!\n".encode())
+    Menu(c)
 
+<<<<<<< Updated upstream
 def deleteUser(client_socket):
     if check_permission(client_socket, "delete_user"):
         client_socket.send("Username to delete: ".encode())
@@ -255,6 +253,8 @@ def deleteData(client_socket):
         sqlConnection.close()
     else:
         client_socket.send("Current user doesn't have permission to delete data.\n".encode())
+=======
+>>>>>>> Stashed changes
 
 def Menu(client_socket):
     while True:
@@ -262,13 +262,7 @@ def Menu(client_socket):
         command = client_socket.recv(1024).decode().strip()
         switch = {
             "/login": login,
-            "/createuser": createUser,
-            "/deleteuser": deleteUser,
-            "/search": searchData,
-            "/insert": insertData,
-            "/update": updateData,
-            "/delete": deleteData,
-            "/help": showHelp,
+            "/register": register,
             "/exit": exitProgram
         }
         handler = switch.get(command, invalidCommand)
