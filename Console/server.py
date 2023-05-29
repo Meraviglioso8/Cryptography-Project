@@ -51,8 +51,8 @@ def login(client_socket):
     except:
         client_socket.send(f'{username}: {password} , {data}, {verifyValid}'.encode())
         client_socket.send("Login failed!".encode())
-
-    Menu(client_socket)
+    finally:
+        Menu(client_socket)
 
 
 
@@ -65,7 +65,7 @@ def register(c):
     hashpass = ph.hash(password)
     conn = sqlite3.connect("userdata.db")
     cur = conn.cursor()
-    cur.execute("INSERT INTO userdata (username,password) VALUES (?, ?)", (username,hashpass))
+    cur.execute("INSERT INTO userdata (username,password,role) VALUES (?, ?,?)", (username,hashpass,"normal"))
     conn.commit()
     c.send("Register successfully!\n".encode())
     Menu(c)

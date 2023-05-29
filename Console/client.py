@@ -4,6 +4,7 @@ import threading
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR, 1)
 client.connect(("localhost", 9999))
+print("Client connecting...")
 def receive():
     while True:
         try:
