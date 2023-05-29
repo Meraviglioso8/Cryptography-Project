@@ -1,4 +1,6 @@
-import sqlite3
+import os
+import urllib.parse as up
+import psycopg2
 import socket
 import threading
 from argon2 import PasswordHasher
@@ -10,9 +12,16 @@ server.bind(("localhost",9999))
 server.listen()
 print("Server starting...")
 
+#set up database
+up.uses_netloc.append("rbzkziqg")
+url = up.urlparse("postgres://rbzkziqg:rGJI2QMcTMo7C6GGrC1f1X82FqysVz2H@satao.db.elephantsql.com/rbzkziqg")
+conn = None
+cur = None
+ph = PasswordHasher()
+
 def check_permission(client_socket, permission):
     username = client_socket.username
-    sqlConnection = sqlite3.connect("userdata.db")
+    #sqlConnection = sqlite3.connect("userdata.db")
     cursor = sqlConnection.cursor()
     cursor.execute("""
         SELECT role FROM userdata
@@ -39,17 +48,24 @@ def login(client_socket):
     client_socket.send("Password: ".encode())
     password = client_socket.recv(1024).decode()
 
-    ph = PasswordHasher()
-    conn=sqlite3.connect("userdata.db")
-    cursor=conn.cursor()
-    conn.text_factory = str
-    data = cursor.execute("SELECT password FROM userdata WHERE username = ?", [username]).fetchall()[0][0]
-    print (data)
     try:
-        verifyValid = ph.verify(data ,password)
+        conn = psycopg2.connect(database=url.path[1:],
+        user=url.username,
+        password=url.password,
+        host=url.hostname,
+        port=url.port
+        )
+    except Exception as error:
+        print(error)
+    cur = conn.cursor()
+    cur.execute("SELECT password FROM userInfo WHERE username = %s", [username])
+    data = cur.fetchall()[0][0]
+    print(str(data))
+    try:
+        verifyValid = ph.verify(str(data),password)
+        print(verifyValid)
         client_socket.send("Login complete!".encode())
     except:
-        client_socket.send(f'{username}: {password} , {data}, {verifyValid}'.encode())
         client_socket.send("Login failed!".encode())
     finally:
         Menu(client_socket)
@@ -61,11 +77,18 @@ def register(c):
     username = c.recv(1024).decode()
     c.send("Password: ".encode())
     password = c.recv(1024).decode()
-    ph = PasswordHasher()
     hashpass = ph.hash(password)
-    conn = sqlite3.connect("userdata.db")
+    try:
+        conn = psycopg2.connect(database=url.path[1:],
+        user=url.username,
+        password=url.password,
+        host=url.hostname,
+        port=url.port
+        )
+    except Exception as error:
+        print(error)
     cur = conn.cursor()
-    cur.execute("INSERT INTO userdata (username,password,role) VALUES (?, ?,?)", (username,hashpass,"normal"))
+    cur.execute("INSERT INTO userInfo (username,password,role) VALUES (%s, %s, %s)", (username,hashpass,"normal"))
     conn.commit()
     c.send("Register successfully!\n".encode())
     Menu(c)

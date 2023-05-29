@@ -18,13 +18,13 @@ try:
     cur = conn.cursor()
     cur.execute('DROP TABLE IF EXISTS userInfo')
     create_script = ''' CREATE TABLE IF NOT EXISTS userInfo (
-                            id int PRIMARY KEY,
+                            id SERIAL NOT NULL PRIMARY KEY,
                             username varchar(40) NOT NULL,
                             password varchar(100) NOT NULL,
                             role varchar(10) )'''
     cur.execute(create_script)
-    insert_script = 'INSERT INTO userInfo (id, username, password, role) VALUES (%s, %s ,%s ,%s)'
-    insert_values = [(1,"mera",ph.hash("mera"),"normal"), (2,"kizme",ph.hash("kizme"),"normal"), (3,"tlhung",ph.hash("tlhung"),"normal")]
+    insert_script = 'INSERT INTO userInfo (username, password, role) VALUES (%s ,%s ,%s)'
+    insert_values = [("mera",ph.hash("mera"),"normal"), ("kizme",ph.hash("kizme"),"normal"), ("tlhung",ph.hash("tlhung"),"normal")]
     for i in insert_values:
         cur.execute(insert_script,i)
     conn.commit()
