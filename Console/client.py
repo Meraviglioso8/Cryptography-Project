@@ -1,8 +1,14 @@
 import socket
+import ssl
 import threading
 
+# Create SSL context
+context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+context.load_verify_locations(cafile="server.crt")  # Provide the path to the server's certificate
+
+# Connect to the server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR, 1)
+client = context.wrap_socket(client, server_hostname="Group6")
 client.connect(("localhost", 9999))
 print("Client connecting...")
 def receive():

@@ -2,12 +2,17 @@ import sqlite3
 import socket
 import threading
 from argon2 import PasswordHasher
+import ssl
 
 # Setup connection
+context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+context.load_cert_chain(certfile="server.crt", keyfile="server.key")
+
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR, 1)
-server.bind(("localhost",9999))
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server.bind(("0.0.0.0", 9999))
 server.listen()
+server = context.wrap_socket(server, server_side=True)
 print("Server starting...")
 
 def check_permission(client_socket, permission):
