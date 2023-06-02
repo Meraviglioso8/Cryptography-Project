@@ -1,13 +1,17 @@
-FROM python:3.10.9
+FROM ubuntu:20.04
 
-WORKDIR /server_db
+RUN mkdir /server_db
 
 COPY . /server_db
 
-RUN pip install --upgrade pip
+RUN apt -y update && apt -y upgrade
 
-RUN pip install -r requirements.txt
+WORKDIR /server_db
 
-EXPOSE 2525
+RUN apt-get install python3-pip -y
 
-CMD ["python", "-u", "server.py"]
+RUN python3 -m pip install -r requirements.txt
+
+EXPOSE 9999
+
+CMD ["python3","-u", "server.py"]
