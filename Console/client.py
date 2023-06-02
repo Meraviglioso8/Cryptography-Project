@@ -1,10 +1,17 @@
 import socket
+import ssl
 import threading
+import requests
+# SSL context
+context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+context.load_verify_locations(cafile="server.crt")
 
+# Connect to the server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR, 1)
+client = context.wrap_socket(client, server_hostname="Group6")
 client.connect(("localhost", 9999))
-print("Client connecting...")
+print("Client connected successfully")
+
 def receive():
     while True:
         try:
@@ -25,8 +32,19 @@ def send():
             client.close()
             break
 
-
 def main():
+    # Verify cert
+    cert = client.getpeercert()
+    if cert:
+        issuer = dict(x[0] for x in cert['issuer'])
+        subject = dict(x[0] for x in cert['subject'])
+        if issuer['commonName'] == "Group6" and subject['commonName'] == "Group6":
+            print("Server certificate verified")
+        else:
+            print("Server certificate verification failed")
+    else:
+        print("Server certificate verification failed")
+
     receive_thread = threading.Thread(target=receive)
     receive_thread.start()
     send_thread = threading.Thread(target=send)
