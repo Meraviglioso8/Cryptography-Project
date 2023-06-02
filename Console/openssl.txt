@@ -22,3 +22,6 @@ An optional company name []:UIT
 
 - add cert to CA
 certutil -addstore -f "ROOT" server.crt
+
+-check cert
+openssl s_client -connect "localhost":9999 -showcerts
