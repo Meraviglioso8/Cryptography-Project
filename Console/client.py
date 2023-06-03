@@ -15,8 +15,16 @@ print("Client connected successfully")
 def receive():
     while True:
         try:
-            rev = client.recv(1024).decode()
-            print(rev)
+            message = client.recv(1024).decode()
+            if message.startswith("FACTOR:"):
+                # Received the encrypted factor, save it to file
+                factor = message[7:]
+                with open("factor", "wb") as f:
+                    f.write(bytes.fromhex(factor))
+                print("factor saved to file")
+            else:
+                # Received a regular message, print it to the console
+                print(message)
         except:
             print('Error! Cannot receive from server!')
             client.close()
