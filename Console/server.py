@@ -3,11 +3,16 @@ import urllib.parse as up
 import psycopg2
 import socket
 import threading
-from argon2 import PasswordHasher
+import binascii
+import hmac
+import hashlib
+import struct
+import time
 import ssl
 from random import getrandbits
 from Crypto.Cipher import AES
-import binascii
+from argon2 import PasswordHasher
+
 
 # Setup connection
 dir_path = os.path.dirname(os.path.abspath(__file__))
@@ -76,13 +81,28 @@ def getRoles(username):
     except Exception as error:
         print(error)
     cur = conn.cursor()
-    cur.execute("""
-        SELECT role FROM userInfo WHERE username = ?
-    """, (username,))
-    result = cur.fetchone()
+    cur.execute("SELECT role FROM userInfo WHERE username = %s", [username])
+    result = cur.fetchall()[0][0]
     if result is None:
         return False # user not found
-    return result[0]
+    return result
+
+def generate_totp(secret_key):
+    current_time = int(time.time())
+    time_interval = 30
+    time_steps = current_time // time_interval
+    time_steps_bytes = struct.pack(">Q", time_steps)
+    secret_key_bytes = secret_key.encode("ascii")
+    # Generate an HMAC-SHA1 hash of the time steps using the secret key
+    hmac_hash = hmac.new(secret_key_bytes, time_steps_bytes, hashlib.sha1).digest()
+
+    # Calculate the offset and take last 4-byte for the TOTP code
+    offset = hmac_hash[-1] & 0x0F
+    code_bytes = hmac_hash[offset:offset+4]
+    code = struct.unpack(">I", code_bytes)[0]
+    totp_code= '{0:06d}'.format((code & 0x7FFFFFFF) % 1000000)
+
+    return totp_code
 
 def generateFactor(username):
     role = getRoles(username)
@@ -96,21 +116,17 @@ def generateFactor(username):
     except Exception as error:
         print(error)
     cur = conn.cursor()
-    cur.execute("""
-        SELECT delete_user, search_data, insert_data, update_data, delete_data
-        FROM role_permissions
-        WHERE role = ?
-    """, (role,))
-    result = cur.fetchone()
+    cur.execute("SELECT delete_user, search_data, insert_data, update_data, delete_data FROM rolePermissions WHERE role = %s", [role])
+    result = cur.fetchall()
 
     if result:
         key = binascii.unhexlify("9A1C95B959B9B67EEF032BA0FD0ABC22")
         permissions = {
-                    'delete_user': result[0],
-                    'search_data': result[1],
-                    'insert_data': result[2],
-                    'update_data': result[3],
-                    'delete_data': result[4]
+                    'delete_user': result[0][0],
+                    'search_data': result[0][1],
+                    'insert_data': result[0][2],
+                    'update_data': result[0][3],
+                    'delete_data': result[0][4]
                 }
         permissions_bin = ''.join([bin(value)[2:].zfill(1) for value in permissions.values()])
         random1 = bin(getrandbits(8))[2:]  
@@ -122,7 +138,7 @@ def generateFactor(username):
 
         factor32char = encryptedFactor[:16] + encryptedFactor[-16:]
          # insert the factor into the database table
-        cur.execute("UPDATE userInfo SET factor = ? WHERE username = ? VALUES (?, ?)", (factor32char, username))
+        cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [factor32char, username])
         conn.commit() # commit the transaction to save the changes to the database
         print(f"Factor saved to database for user {username}: {factor32char}")
         return factor32char
@@ -135,6 +151,8 @@ def login(client_socket):
     username = client_socket.recv(1024).decode()
     client_socket.send("Password: ".encode())
     password = client_socket.recv(1024).decode()
+    client_socket.send("OTP code:".encode())
+    otp_code = client_socket.recv(1024).dec
     try:
         conn = psycopg2.connect(database=url.path[1:],
         user=url.username,
@@ -152,7 +170,15 @@ def login(client_socket):
     try:
         verifyValid = ph.verify(str(data),password)
         print(verifyValid)
-        client_socket.send("Login complete!".encode())
+        '''
+        cur.execute("SELECT factor FROM userInfo WHERE username = %s", [username])
+        data = cur.fetchall()[0][0]
+        if(otp_code == generate_totp(factor)):
+            client_socket.send("Login complete!".encode())
+        else:
+            client_socket.send("Invalid OTP code")
+        '''
+        client_socket.send("Login complete!".encode)
     except:
         client_socket.send("Login failed!".encode())
     finally:
@@ -174,13 +200,16 @@ def register(client_socket):
         )
     except Exception as error:
         print(error)
+        
     cur = conn.cursor()
-    cur.execute("INSERT INTO userInfo (username,password,role) VALUES (%s, %s, %s)", (username,hashpass,"normal"))
+    cur.execute("INSERT INTO userInfo (username,password,role) VALUES (%s, %s, %s)", [username,hashpass,"normal"])
     conn.commit()
-    client_socket.send("Register successfully!\n".encode())
 
     factor = generateFactor(username)
-    client_socket.send("FACTOR:" + factor.encode())
+    cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [factor,username])
+    conn.commit()
+    client_socket.send(("FACTOR:" + str(factor)).encode())
+    client_socket.send("Register successfully!\n".encode())
 
     Menu(client_socket)
 
