@@ -2,15 +2,18 @@ import hmac
 import hashlib
 import struct
 import time
+import os
 
-def generate_totp(secret_key):
+def generate_totp(secret_key_file):
+    with open(secret_key_file, "r") as f:
+        secret_key = f.read().strip()
+
     current_time = int(time.time())
     time_interval = 30
     time_steps = current_time // time_interval
     time_steps_bytes = struct.pack(">Q", time_steps)
-
-    # Decode the secret key from base32 to bytes
     secret_key_bytes = secret_key.encode("ascii")
+    
     # Generate an HMAC-SHA1 hash of the time steps using the secret key
     hmac_hash = hmac.new(secret_key_bytes, time_steps_bytes, hashlib.sha1).digest()
 
@@ -22,17 +25,19 @@ def generate_totp(secret_key):
 
     return totp_code
 
-# Generate a random secret key
-secret_key = "JBSWY3DPEHPK3PXP"
+# Specify the file name containing the secret key
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Specify the file name containing the secret key
+secret_key_file = os.path.join(script_dir, "factor")
 
 # Generate the current TOTP code
-totp_code = generate_totp(secret_key)
-print("Secret key:", secret_key)
+totp_code = generate_totp(secret_key_file)
+print("Secret key file:", secret_key_file)
 print("Current TOTP code:", totp_code)
 
 # Wait 30 seconds to generate a new TOTP code
 time.sleep(30)
-new_totp_code = generate_totp(secret_key)
-
+new_totp_code = generate_totp(secret_key_file)
 
 print("New TOTP code:", new_totp_code)

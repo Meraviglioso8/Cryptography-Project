@@ -17,7 +17,7 @@ try:
     )
     cur = conn.cursor()
 
-    cur.execute('DROP TABLE IF EXISTS rolePermissions')
+    cur.execute('DROP TABLE IF EXISTS rolePermissions CASCADE')
     create_script = ''' CREATE TABLE IF NOT EXISTS rolePermissions (
                             id SERIAL NOT NULL PRIMARY KEY,
                             role VARCHAR(10) NOT NULL UNIQUE,

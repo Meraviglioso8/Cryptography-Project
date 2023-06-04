@@ -16,8 +16,6 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client = context.wrap_socket(client, server_hostname="Group6")
 client.connect(("localhost", 9999))
 print("Client connected successfully")
-with open('factor', 'r') as file:
-    factor = file.read()
 
 def receive():
     while True:
@@ -27,7 +25,7 @@ def receive():
                 # Received the encrypted factor, save it to file
                 factor = message[7:]
                 with open("factor", "wb") as f:
-                    f.write(bytes.fromhex(factor))
+                    f.write(factor)
                 print("factor saved to file")
             else:
                 # Received a regular message, print it to the console

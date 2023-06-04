@@ -152,7 +152,7 @@ def login(client_socket):
     client_socket.send("Password: ".encode())
     password = client_socket.recv(1024).decode()
     client_socket.send("OTP code:".encode())
-    otp_code = client_socket.recv(1024).dec
+    otp_code = client_socket.recv(1024).decode()
     try:
         conn = psycopg2.connect(database=url.path[1:],
         user=url.username,
@@ -170,15 +170,12 @@ def login(client_socket):
     try:
         verifyValid = ph.verify(str(data),password)
         print(verifyValid)
-        '''
         cur.execute("SELECT factor FROM userInfo WHERE username = %s", [username])
-        data = cur.fetchall()[0][0]
+        factor = cur.fetchall()[0][0]
         if(otp_code == generate_totp(factor)):
             client_socket.send("Login complete!".encode())
         else:
             client_socket.send("Invalid OTP code")
-        '''
-        client_socket.send("Login complete!".encode)
     except:
         client_socket.send("Login failed!".encode())
     finally:
