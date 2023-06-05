@@ -1,7 +1,6 @@
-- openssl genrsa -out server.key 2048
+- openssl ecparam -name prime256v1 -genkey -noout -out server.key
+
 - openssl req -new -key server.key -out server.csr
-
-
 
 
 Country Name (2 letter code) [AU]:VN
@@ -24,4 +23,4 @@ An optional company name []:UIT
 certutil -addstore -f "ROOT" server.crt
 
 -check cert
-openssl s_client -connect "localhost":9999 -showcerts
+openssl s_client -connect localhost:9999 -showcerts

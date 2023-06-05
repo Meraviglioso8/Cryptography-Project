@@ -2,9 +2,11 @@ import socket
 import ssl
 import threading
 import requests
+from OpenSSL import crypto
 # SSL context
 context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
 context.load_verify_locations(cafile="server.crt")
+context.verify_mode = ssl.CERT_REQUIRED
 
 # Connect to the server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
