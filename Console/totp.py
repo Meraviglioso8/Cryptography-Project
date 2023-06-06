@@ -15,7 +15,7 @@ def generate_totp(secret_key_file):
     secret_key_bytes = secret_key.encode("ascii")
     
     # Generate an HMAC-SHA1 hash of the time steps using the secret key
-    hmac_hash = hmac.new(secret_key_bytes, time_steps_bytes, hashlib.sha1).digest()
+    hmac_hash = hmac.new(secret_key_bytes, time_steps_bytes, hashlib.sha3_256).digest()
 
     # Calculate the offset and take last 4-byte for the TOTP code
     offset = hmac_hash[-1] & 0x0F
@@ -33,7 +33,6 @@ secret_key_file = os.path.join(script_dir, "factor")
 
 # Generate the current TOTP code
 totp_code = generate_totp(secret_key_file)
-print("Secret key file:", secret_key_file)
 print("Current TOTP code:", totp_code)
 
 # Wait 30 seconds to generate a new TOTP code

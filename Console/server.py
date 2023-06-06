@@ -87,14 +87,14 @@ def getRoles(username):
         return False # user not found
     return result
 
-def generate_totp(secret_key):
+def generate_totp(secret_key, offset=0):
     current_time = int(time.time())
     time_interval = 30
-    time_steps = current_time // time_interval
+    time_steps = (current_time // time_interval) + offset
     time_steps_bytes = struct.pack(">Q", time_steps)
     secret_key_bytes = secret_key.encode("ascii")
     # Generate an HMAC-SHA1 hash of the time steps using the secret key
-    hmac_hash = hmac.new(secret_key_bytes, time_steps_bytes, hashlib.sha1).digest()
+    hmac_hash = hmac.new(secret_key_bytes, time_steps_bytes, hashlib.sha3_256).digest()
 
     # Calculate the offset and take last 4-byte for the TOTP code
     offset = hmac_hash[-1] & 0x0F
@@ -172,7 +172,7 @@ def login(client_socket):
         print(verifyValid)
         cur.execute("SELECT factor FROM userInfo WHERE username = %s", [username])
         factor = cur.fetchall()[0][0]
-        if(otp_code == generate_totp(factor)):
+        if(otp_code == generate_totp(factor) or otp_code == generate_totp(factor, -1)):
             client_socket.send("Login complete!".encode())
         else:
             client_socket.send("Invalid OTP code")
