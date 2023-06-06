@@ -87,10 +87,10 @@ def getRoles(username):
         return False # user not found
     return result
 
-def generate_totp(secret_key, offset=0):
+def generate_totp(secret_key, state=0):
     current_time = int(time.time())
     time_interval = 30
-    time_steps = (current_time // time_interval) + offset
+    time_steps = (current_time // time_interval) + state
     time_steps_bytes = struct.pack(">Q", time_steps)
     secret_key_bytes = secret_key.encode("ascii")
     # Generate an HMAC-SHA1 hash of the time steps using the secret key
