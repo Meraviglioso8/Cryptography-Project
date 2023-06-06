@@ -70,15 +70,14 @@ def send():
             client.close()
             break
 
-def generate_totp(secret_key):
+def generate_totp(secret_key, state=0):
     current_time = int(time.time())
-    time_interval = 60
-    time_steps = current_time // time_interval
+    time_interval = 30
+    time_steps = (current_time // time_interval) + state
     time_steps_bytes = struct.pack(">Q", time_steps)
     secret_key_bytes = secret_key.encode("ascii")
-    
-    # Generate an HMAC-SHA1 hash of the time steps using the secret key
-    hmac_hash = hmac.new(secret_key_bytes, time_steps_bytes, hashlib.sha1).digest()
+    # Generate an HMAC-SHA256 hash of the time steps using the secret key
+    hmac_hash = hmac.new(secret_key_bytes, time_steps_bytes, hashlib.sha3_256).digest()
 
     # Calculate the offset and take last 4-byte for the TOTP code
     offset = hmac_hash[-1] & 0x0F
