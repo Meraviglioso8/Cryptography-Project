@@ -205,9 +205,9 @@ def register(client_socket):
     factor = generateFactor(username)
     cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [factor,username])
     conn.commit()
-    client_socket.send(("FACTOR:" + str(factor)).encode())
+    client_socket.send(("FACTOR:" + factor).encode())
     client_socket.send("Register successfully!\n".encode())
-
+    
     Menu(client_socket)
 
 
@@ -231,6 +231,7 @@ def exitProgram(client_socket):
 
 def invalidCommand(client_socket):
     client_socket.send("Invalid command\n".encode())
+    Menu(client_socket)
    
 def main():    
         while True:
