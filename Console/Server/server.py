@@ -12,17 +12,19 @@ import ssl
 from random import getrandbits
 from Crypto.Cipher import AES
 from argon2 import PasswordHasher
-
+import subprocess
+import smtplib
 
 # Setup connection
 dir_path = os.path.dirname(os.path.abspath(__file__))
 
 # Construct the paths to the certificate and key files
-certfile = os.path.join(dir_path, "server.crt")
-keyfile = os.path.join(dir_path, "server.key")
+certfile = os.path.join(dir_path, "C:/Users/gohan/OneDrive/Documents/GitHub/Cryptography-Project/Console/server.crt")
+keyfile = os.path.join(dir_path, "C:/Users/gohan/OneDrive/Documents/GitHub/Cryptography-Project/Console/server.key")
 
 # Create an SSL context and load the certificate and key files
-context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.minimum_version = ssl.TLSVersion.TLSv1_3
 context.load_cert_chain(certfile=certfile, keyfile=keyfile)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -33,8 +35,8 @@ server = context.wrap_socket(server, server_side=True)
 print("Server starting...")
 
 #set up database
-up.uses_netloc.append("rbzkziqg")
-url = up.urlparse("postgres://rbzkziqg:rGJI2QMcTMo7C6GGrC1f1X82FqysVz2H@satao.db.elephantsql.com/rbzkziqg")
+up.uses_netloc.append("rslgnkrk")
+url = up.urlparse("postgres://rslgnkrk:KlTouCgQoGMPRngRKf8ddlBAI0FaL9_j@satao.db.elephantsql.com/rslgnkrk")
 conn = None
 cur = None
 ph = PasswordHasher() 
@@ -62,7 +64,7 @@ def check_permission(client_socket, permission):
     role = result[0]
 
     cur.execute("""
-        SELECT ? FROM role_permissions
+        SELECT ? FROM rolePermissions
         WHERE role = ?
     """, (permission, role))
     result = cur.fetchone()
@@ -149,26 +151,41 @@ def generateFactor(username):
 def reqOtp(username):
     try:
         conn = psycopg2.connect(database=url.path[1:],
-        user=url.username,
-        password=url.password,
-        host=url.hostname,
-        port=url.port
-        )
+                               user=url.username,
+                               password=url.password,
+                               host=url.hostname,
+                               port=url.port
+                               )
+
+        cur = conn.cursor()
+        cur.execute("SELECT factor FROM userInfo WHERE username = %s", [username])
+        result = cur.fetchall()
+        #user name exists or not
+        if len(result) > 0: 
+            factor = result[0][0]
+            otp = generate_totp(factor)
+            return True, otp
+        else:
+            return False, None
     except Exception as error:
         print(error)
-    cur = conn.cursor()
-    cur.execute("SELECT factor FROM userInfo WHERE username = %s", [username])
-    factor = cur.fetchall()[0][0]
-    otp = generate_totp(factor)
-    return otp
+        return False, None
+
 
 def login(client_socket):
     client_socket.send("Username: ".encode())
     username = client_socket.recv(1024).decode()
-    password = client_socket.recv(1024).decode()
+    exists, genOTP = reqOtp(username)
 
-    client_socket.send("OTP code:".encode())
-    genOTP = reqOtp(username)
+    password = client_socket.recv(1024).decode()
+    client_socket.send("Your OTP code:".encode())
+    client_socket.send(genOTP.encode())
+    
+    if not exists:  # doesn't exist
+        client_socket.send("Invalid username. Please try again.".encode())
+        login(client_socket)  # client to log in again
+        return
+    
     print(genOTP)
     otp_code = client_socket.recv(1024).decode()
     try:
@@ -191,18 +208,131 @@ def login(client_socket):
         if(otp_code == genOTP):
             client_socket.send("Login complete!".encode())
         else:
-            client_socket.send("Invalid OTP code")
+            cur.execute("INSERT INTO suspiciousTable (usernameSUSSY) VALUES (%s)", [username])
+            conn.commit()
+            cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [username])
+            count = cur.fetchone()[0]
+            cur.execute("SELECT email FROM userInfo WHERE username = %s", [username])
+            gmailofSussy = cur.fetchone()[0]
+            client_socket.send("Invalid OTP code, you are added into suspicious table".encode())
+            client_socket.send(("User added to suspiciousTable count: " + str(count)).encode())
+            sendEmail(count,gmailofSussy)
     except:
-        client_socket.send("Login failed!".encode())
+        cur.execute("INSERT INTO suspiciousTable (usernameSUSSY) VALUES (%s)", [username])
+        conn.commit()
+        cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [username])
+        count = cur.fetchone()[0]
+        cur.execute("SELECT email FROM userInfo WHERE username = %s", [username])
+        gmailofSussy = cur.fetchone()[0]
+        client_socket.send("Invalid Password, you are added into suspicious table".encode())
+        client_socket.send(("User added to suspiciousTable count: " + str(count)).encode())
+        sendEmail(count)
     finally:
         Menu(client_socket)
 
+#send email if count > 5
+def sendEmail(count, gmailofSussy):
+    if count >= 5:
+        sendtogmail(gmailofSussy)
+
+def sendtogmail(gmailofSussy):
+    gmail_user = ''
+    gmail_app_password = ''
+
+    sent_from = gmail_user
+    sent_to = [gmailofSussy]
+    sent_subject = "Hey Friends!"
+    sent_body = ("Hello\n\n"
+                "I have to inform that you are now in SUSPECTED table by our application!\n"
+                "\n"
+                "Seeya,\n"
+                "Group6\n")
+
+    email_text = """\
+    From: %s
+    To: %s
+    Subject: %s
+
+    %s
+    """ % (sent_from, ", ".join(sent_to), sent_subject, sent_body)
+
+    #try until success
+    try:
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.ehlo()
+        server.login(gmail_user, gmail_app_password)
+        server.sendmail(sent_from, sent_to, email_text)
+        server.close()
+
+        print('Email sent!')
+    except Exception as exception:
+        print("Error: %s!\n\n" % exception)
+        
+# def login(client_socket):
+#     client_socket.send("Username: ".encode())
+#     username = client_socket.recv(1024).decode()
+#     exists, genOTP = reqOtp(username)
+
+#     password = client_socket.recv(1024).decode()
+    
+#     try:
+#         conn = psycopg2.connect(database=url.path[1:],
+#                                 user=url.username,
+#                                 password=url.password,
+#                                 host=url.hostname,
+#                                 port=url.port
+#                                )
+#     except Exception as error:
+#         print(error)
+
+#     cur = conn.cursor()
+#     cur.execute("SELECT password FROM userInfo WHERE username = %s", [username])
+#     data = cur.fetchall()
+    
+#     if not data:  # user doesn't exist
+#         client_socket.send("Invalid username. Please try again.".encode())
+#         login(client_socket)  # client to log in again
+#         return
+    
+#     stored_password = data[0][0]
+    
+#     try:
+#         verifyValid = ph.verify(stored_password, password)
+#         client_socket.recv(1024)
+#         client_socket.send(verifyValid.encode())
+        
+#         if verifyValid:
+#             client_socket.send("Password correct. Please enter OTP code:".encode())
+#             client_socket.send(genOTP.encode())
+#             otp_code = client_socket.recv(1024).decode()
+            
+#             if otp_code == genOTP:
+#                 client_socket.send("Login complete!".encode())
+#             else:
+#                 client_socket.send("Invalid OTP code".encode())
+#                 cur.execute("INSERT INTO suspiciousTable (usernameSUSSY) VALUES (%s)", [username])
+#                 conn.commit()
+#                 cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [username])
+#                 count = cur.fetchone()[0]
+#                 client_socket.send(f"User added to suspiciousTable {count} time(s)".encode())
+#         else:
+#             client_socket.send("Invalid password".encode())
+#             cur.execute("INSERT INTO suspiciousTable (usernameSUSSY) VALUES (%s)", [username])
+#             conn.commit()
+#             cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [username])
+#             count = cur.fetchone()[0]
+#             client_socket.send(f"User added to suspiciousTable {count} time(s)".encode())
+#     except:
+#         client_socket.send("Login failed!".encode())
+    
+#     Menu(client_socket)
 
 
 def register(client_socket):
     client_socket.send("Username: ".encode())
     username = client_socket.recv(1024).decode()
     password = client_socket.recv(1024).decode()
+    email = client_socket.recv(1024).decode()
     hashpass = ph.hash(password)
     try:
         conn = psycopg2.connect(database=url.path[1:],
@@ -215,7 +345,7 @@ def register(client_socket):
         print(error)
         
     cur = conn.cursor()
-    cur.execute("INSERT INTO userInfo (username,password,role) VALUES (%s, %s, %s)", [username,hashpass,"normal"])
+    cur.execute("INSERT INTO userInfo (username,password,email,role) VALUES (%s, %s, %s, %s)", [username,hashpass,email,"normal"])
     conn.commit()
 
     factor = generateFactor(username)
@@ -249,7 +379,7 @@ def exitProgram(client_socket):
 
 def invalidCommand(client_socket):
     client_socket.send("Invalid command\n".encode())
-   
+
 def main():    
         while True:
             client_socket, addr = server.accept()

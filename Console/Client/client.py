@@ -10,8 +10,9 @@ from binascii import hexlify
 from getpass import getpass
 
 # SSL context
-context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-context.load_verify_locations(cafile="server.crt")
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+context.minimum_version = ssl.TLSVersion.TLSv1_3
+context.load_verify_locations(cafile="C:/Users/gohan/OneDrive/Documents/GitHub/Cryptography-Project/Console/server.crt")
 context.verify_mode = ssl.CERT_REQUIRED
 
 # Connect to the server
@@ -41,35 +42,34 @@ def receive():
             client.close()
             break
 def reqOTP(username):
-    filename = hashlib.sha256(username.encode()).hexdigest()
-    f= open(str(filename[:10]), "rb")
-    factor = hexlify(f.read())
-    otp = generate_totp(factor.decode())
-    return otp
+     filename = hashlib.sha256(username.encode()).hexdigest()
+     f= open(str(filename[:10]), "rb")
+     factor = hexlify(f.read())
+     otp = generate_totp(factor.decode())
+     return otp
 def send():
     while True:
         try:
             message = input()
             client.send(message.encode())
-            if(message =="/login"):
+            if message == "/login":
                 username = input()
                 client.send(username.encode())
                 passw = getpass()
                 client.send(passw.encode())
-                gen = reqOTP(username)
-                print("Your generated OTP sending to server is: ",gen)
-                client.send(gen.encode())
+                gen = input("Enter your otp to send to server: ")
+                client.send(gen.encode()) 
             elif (message =="/register"):
                 message = input()
                 client.send(message.encode())
-                message = getpass()
+                message = getpass("Password: ")
                 client.send(message.encode())
-                
+                email = input("Email: ")
+                client.send(email.encode())
         except Exception as e:
             print(e)
             client.close()
             break
-
 def generate_totp(secret_key, state=0):
     current_time = int(time.time())
     time_interval = 30

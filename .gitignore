@@ -1,2 +1,6 @@
 .env
 node_modules
+.rnd
+Console/server.crt
+Console/server.csr
+Console/server.key
