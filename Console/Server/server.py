@@ -21,14 +21,16 @@ stop_threads = False
 # Setup connection
 dir_path = os.path.dirname(os.path.abspath(__file__))
 
-# Construct the paths to the certificate and key files
-certfile = os.path.join(dir_path, "server.crt")
-keyfile = os.path.join(dir_path, "server.key")
+# Construct the paths to the certificate, ca and key files
+ca_bundle_file = os.path.join(dir_path, "key/ca_bundle.crt")
+cert_file = os.path.join(dir_path, "key/certificate.crt")
+key_file = os.path.join(dir_path, "key/private.key")
 
-# Create an SSL context and load the certificate and key files
+# create an SSL context 
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.minimum_version = ssl.TLSVersion.TLSv1_3
-context.load_cert_chain(certfile=certfile, keyfile=keyfile)
+context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=None)
+context.load_verify_locations(cafile=ca_bundle_file)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

@@ -1,2 +1,5 @@
 .env
 node_modules
+console/Server/key
+console/Client/key
+console/Key
