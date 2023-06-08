@@ -8,9 +8,12 @@ import struct
 import time
 from binascii import hexlify
 from getpass import getpass
-
+#global value
+otp =''
+stop_threads = False
 # SSL context
-context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+context.minimum_version = ssl.TLSVersion.TLSv1_3
 context.load_verify_locations(cafile="server.crt")
 context.verify_mode = ssl.CERT_REQUIRED
 
@@ -25,14 +28,26 @@ def receive():
         try:
             message = client.recv(1024)
             if message.startswith(b"FACTOR:"):
-                # Received the encrypted factor, save it to file
+            # Received the encrypted factor, save it to file
                 factor = message[-32:]
                 username = message.decode().split(':')[1].split('/')[0]
                 filename = hashlib.sha256(username.encode()).hexdigest()
-                print
                 with open(str(filename[:10]), "wb") as f:
                     f.write(bytes.fromhex(factor.decode()))
                 print("factor saved to file. input OK for confirmation")
+            #start generating OTP ass username + password is valid
+            elif message.startswith(b"Start"):
+                username = message.decode()[5:]
+                log_time = int(time.time())
+                thread = threading.Thread(target=reqOTP,args=(username,log_time))
+                thread.start()
+                
+                
+                print("Please open OTP file. Note that OTP only valid in a small amount of time.")
+            #stop generate OTP as login successfully
+            elif message.startswith(b"Login complete"):
+                global stop_threads
+                stop_threads = True
             else:
                 # Received a regular message, print it to the console
                 print(message.decode())
@@ -40,36 +55,38 @@ def receive():
             print(e)
             client.close()
             break
-def reqOTP(username):
+def reqOTP(username,log_time):
     filename = hashlib.sha256(username.encode()).hexdigest()
     f= open(str(filename[:10]), "rb")
     factor = hexlify(f.read())
+    #generate first time
+    global otp
     otp = generate_totp(factor.decode())
-    return otp
+    filename = hashlib.sha256(username.encode()).hexdigest()
+    with open(str(filename[:10]) + "_OTP", "w") as f:
+        f.write(otp)
+
+    while True:
+        global stop_threads
+        #generate again after 60 secs
+        if (int(time.time())- log_time == 60):
+            log_time = int(time.time())
+            otp = generate_totp(factor.decode())
+            with open(str(filename[:10]) + "_OTP", "w") as f:
+                f.write(otp)
+        #stop thread when have input OTP
+        if stop_threads == True:
+            stop_threads = False
+            
 def send():
     while True:
         try:
             message = input()
             client.send(message.encode())
-            if(message =="/login"):
-                username = input()
-                client.send(username.encode())
-                passw = getpass()
-                client.send(passw.encode())
-                gen = reqOTP(username)
-                print("Your generated OTP sending to server is: ",gen)
-                client.send(gen.encode())
-            elif (message =="/register"):
-                message = input()
-                client.send(message.encode())
-                message = getpass()
-                client.send(message.encode())
-                
         except Exception as e:
             print(e)
             client.close()
             break
-
 def generate_totp(secret_key, state=0):
     current_time = int(time.time())
     time_interval = 30
@@ -104,6 +121,8 @@ def main():
     receive_thread.start()
     send_thread = threading.Thread(target=send)
     send_thread.start()
+
+
 
 if __name__ == "__main__":
     main()

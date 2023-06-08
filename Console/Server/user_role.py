@@ -2,8 +2,8 @@ import os
 import urllib.parse as up
 import psycopg2
 
-up.uses_netloc.append("rbzkziqg")
-url = up.urlparse("postgres://rbzkziqg:rGJI2QMcTMo7C6GGrC1f1X82FqysVz2H@satao.db.elephantsql.com/rbzkziqg")
+up.uses_netloc.append("rslgnkrk")
+url = up.urlparse("postgres://rslgnkrk:KlTouCgQoGMPRngRKf8ddlBAI0FaL9_j@satao.db.elephantsql.com/rslgnkrk")
 conn = None
 cur = None
 try:
