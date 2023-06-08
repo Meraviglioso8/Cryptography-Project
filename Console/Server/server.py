@@ -12,7 +12,6 @@ import ssl
 from random import getrandbits
 from Crypto.Cipher import AES
 from argon2 import PasswordHasher
-import subprocess
 import smtplib
 
 # Setup connection
@@ -173,12 +172,12 @@ def reqOtp(username):
 
 
 def login(client_socket):
+    
     client_socket.send("Username: ".encode())
     username = client_socket.recv(1024).decode()
     exists, genOTP = reqOtp(username)
-
     password = client_socket.recv(1024).decode()
-    client_socket.send("Your OTP code:".encode())
+    client_socket.send("Server OTP code sent:".encode())
     client_socket.send(genOTP.encode())
     
     if not exists:  # doesn't exist
@@ -204,6 +203,7 @@ def login(client_socket):
     print(str(data))
     try:
         verifyValid = ph.verify(str(data),password)
+        client_socket.send(str(verifyValid).encode())
         print(verifyValid)
         if(otp_code == genOTP):
             client_socket.send("Login complete!".encode())
@@ -236,8 +236,8 @@ def sendEmail(count, gmailofSussy):
         sendtogmail(gmailofSussy)
 
 def sendtogmail(gmailofSussy):
-    gmail_user = ''
-    gmail_app_password = ''
+    gmail_user = 'kietngo2552@gmail.com'
+    gmail_app_password = 'zqfguhvsqzumlvps'
 
     sent_from = gmail_user
     sent_to = [gmailofSussy]

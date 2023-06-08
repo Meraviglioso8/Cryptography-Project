@@ -57,7 +57,8 @@ def send():
                 client.send(username.encode())
                 passw = getpass()
                 client.send(passw.encode())
-                gen = input("Enter your otp to send to server: ")
+                gen = reqOTP(username)
+                print("Your generated OTP sent to server is: ",gen)
                 client.send(gen.encode()) 
             elif (message =="/register"):
                 message = input()
