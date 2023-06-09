@@ -13,6 +13,7 @@ from random import getrandbits
 from Crypto.Cipher import AES
 from argon2 import PasswordHasher
 import smtplib
+import random
 from cfg import AES_KEY,DB_PASS,DB_URL
 #Global Value
 otp =""
@@ -21,9 +22,9 @@ stop_threads = False
 dir_path = os.path.dirname(os.path.abspath(__file__))
 
 # Construct the paths to the certificate, ca and key files
-ca_bundle_file = os.path.join(dir_path, "ca_bundle.crt")
-cert_file = os.path.join(dir_path, "certificate.crt")
-key_file = os.path.join(dir_path, "server.key")
+ca_bundle_file = os.path.join(dir_path, "C:/Users/gohan/OneDrive/Documents/GitHub/Cryptography-Project/Console/ca_bundle.crt")
+cert_file = os.path.join(dir_path, "C:/Users/gohan/OneDrive/Documents/GitHub/Cryptography-Project/Console/certificate.crt")
+key_file = os.path.join(dir_path, "C:/Users/gohan/OneDrive/Documents/GitHub/Cryptography-Project/Console/server.key")
 
 # create an SSL context 
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -126,28 +127,32 @@ def generateFactor(username):
     else:
         print(f"No permissions found for role: {role}")
 
+#get recoverycode
+def getRecoveryCode(factor32char):
+    recoveryCode = ''.join(random.sample(factor32char, 6))
+    return recoveryCode
+
 def reqOtp(username,log_time):
     try:
-
-            cur.execute("SELECT factor FROM userInfo WHERE username = %s", [username])
-            factor = cur.fetchall()[0][0]
+        cur.execute("SELECT factor FROM userInfo WHERE username = %s", [username])
+        factor = cur.fetchall()[0][0]
         #user name exists or not
-            if len(factor) > 0: 
-                #generate first time
-                global otp
-                otp = generate_totp(factor)
-                print(otp)
+        if len(factor) > 0: 
+            #generate first time
+            global otp
+            otp = generate_totp(factor)
+            print(otp)
 
-                while True:
-                    global stop_threads
-                    #generate again after 60 secs
-                    if (int(time.time())- log_time == 60):
-                        log_time = int(time.time())
-                        otp = generate_totp(factor)
-                        print(otp)
-                    #stop thread when have input OTP
-                    if stop_threads == True:
-                        stop_threads = False
+            while True:
+                global stop_threads
+                #generate again after 60 secs
+                if (int(time.time())- log_time == 60):
+                    log_time = int(time.time())
+                    otp = generate_totp(factor)
+                    print(otp)
+                #stop thread when have input OTP
+                if stop_threads == True:
+                    stop_threads = False
                
     except Exception as error:
         print(error)
@@ -164,10 +169,12 @@ def checkUsername(username):
     except Exception as e:
         print(e)
         return False
+    
 def login(client_socket):
     
     client_socket.send("Username: ".encode())
     username = client_socket.recv(1024).decode()
+    
     client_socket.send("Password: ".encode())
     password = client_socket.recv(1024).decode()
     #check Invalid Username
@@ -182,6 +189,7 @@ def login(client_socket):
     data = cur.fetchall()[0][0]
     if (int(data) == 1):
         client_socket.send("Your account has been locked. Please contact adminstrators for more information.".encode())
+        cur.close()
         return Menu(client_socket)
     
     cur.execute("SELECT password FROM userInfo WHERE username = %s", [username])
@@ -200,10 +208,38 @@ def login(client_socket):
         sendEmail(count,gmailofSussy)
         if (count >= 5):
             client_socket.send("Your account has been locked. Please contact adminstrators for more information.".encode())
+            cur.close()
             return Menu(client_socket)
-        
+        cur.close()
         return login(client_socket)
     
+    #check valid ip, if new have to auth
+    client_ip = client_socket.getpeername()[0]
+    cur.execute("SELECT ipaddress, recoverycode, factor, email FROM userInfo WHERE username = %s", [username])
+    result = cur.fetchone()
+    ipofusername = result[0]
+    storedRecoveryCode = result[1]
+    factor = result[2]
+    email = result[3]
+    if ipofusername and ipofusername != client_ip:
+        client_socket.send("Login IP does not match the stored IP address. Please enter recoverycode to continue.".encode())
+        recoveryCode = client_socket.recv(1024).decode()
+        if storedRecoveryCode != recoveryCode:
+            client_socket.send("Invalid recovery code. Please try login again.".encode())
+            cur.close()
+            return Menu(client_socket)
+        else:
+            # Retrieve the updated user information
+            cur.execute("SELECT * FROM userInfo WHERE username = %s ", [username])
+            updated_result = cur.fetchone()
+            newIp = (updated_result[1], updated_result[2], updated_result[3], updated_result[4], updated_result[5],client_ip , updated_result[7], updated_result[8])
+            cur.execute("INSERT INTO userInfo (username, password, email, role, factor, ipaddress, recoverycode, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", newIp)
+            storedRecoveryCode = getRecoveryCode(factor)
+            cur.execute("UPDATE userInfo SET recoverycode = %s WHERE username = %s", [storedRecoveryCode, username])
+            conn.commit()
+            client_socket.send("Added new login location".encode())
+            sendRecoveryCode(email, storedRecoveryCode)
+            cur.close()
     #start generating OTP as username + password are valid
 
     if (verifyValid == True):
@@ -217,9 +253,9 @@ def login(client_socket):
         global stop_threads
         stop_threads = True
          
-    if(otp_code == otp):
+        if(otp_code == otp):
             client_socket.send("Login complete!".encode())
-    else:
+        else:
             cur.execute("INSERT INTO suspiciousTable (usernameSUSSY) VALUES (%s)", [username])
             conn.commit()
             cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [username])
@@ -232,8 +268,10 @@ def login(client_socket):
             if (count >= 5):
                 client_socket.send("Your account has been locked. Please contact adminstrators for more information.".encode())
                 return Menu(client_socket)
+            cur.close()
             return login(client_socket)
 
+    cur.close()
     Menu(client_socket)
 
 #send email if count > 5
@@ -285,65 +323,40 @@ def sendtogmail(gmailofSussy):
     except Exception as exception:
         print("Error: %s!\n\n" % exception)
         
-# def login(client_socket):
-#     client_socket.send("Username: ".encode())
-#     username = client_socket.recv(1024).decode()
-#     exists, genOTP = reqOtp(username)
+def sendRecoveryCode(gmailofUser, recoveryCode):
+    gmail_user = 'kietngo2552@gmail.com'
+    gmail_app_password = 'zqfguhvsqzumlvps'
 
-#     password = client_socket.recv(1024).decode()
-    
-#     try:
-#         conn = psycopg2.connect(database=url.path[1:],
-#                                 user=url.username,
-#                                 password=url.password,
-#                                 host=url.hostname,
-#                                 port=url.port
-#                                )
-#     except Exception as error:
-#         print(error)
+    sent_from = gmail_user
+    sent_to = [gmailofUser]
+    sent_subject = "Hey Friends! Check this recovery code"
+    sent_body = ("Hello\n\n"
+                f"Please note this recovery code: {recoveryCode}\n"
+                "It will use every time you need to recovery password and login at new location\n"
+                "\n"
+                "Seeya,\n"
+                "Group6\n")
 
-#     cur = conn.cursor()
-#     cur.execute("SELECT password FROM userInfo WHERE username = %s", [username])
-#     data = cur.fetchall()
-    
-#     if not data:  # user doesn't exist
-#         client_socket.send("Invalid username. Please try again.".encode())
-#         login(client_socket)  # client to log in again
-#         return
-    
-#     stored_password = data[0][0]
-    
-#     try:
-#         verifyValid = ph.verify(stored_password, password)
-#         client_socket.recv(1024)
-#         client_socket.send(verifyValid.encode())
+    email_text = """\
+    From: %s
+    To: %s
+    Subject: %s
+
+    %s
+    """ % (sent_from, ", ".join(sent_to), sent_subject, sent_body)
+
+    #try until success
+    try:
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.ehlo()
+        server.login(gmail_user, gmail_app_password)
+        server.sendmail(sent_from, sent_to, email_text)
+        server.close()
+
+        print('Email sent!')
+    except Exception as exception:
+        print("Error: %s!\n\n" % exception)
         
-#         if verifyValid:
-#             client_socket.send("Password correct. Please enter OTP code:".encode())
-#             client_socket.send(genOTP.encode())
-#             otp_code = client_socket.recv(1024).decode()
-            
-#             if otp_code == genOTP:
-#                 client_socket.send("Login complete!".encode())
-#             else:
-#                 client_socket.send("Invalid OTP code".encode())
-#                 cur.execute("INSERT INTO suspiciousTable (usernameSUSSY) VALUES (%s)", [username])
-#                 conn.commit()
-#                 cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [username])
-#                 count = cur.fetchone()[0]
-#                 client_socket.send(f"User added to suspiciousTable {count} time(s)".encode())
-#         else:
-#             client_socket.send("Invalid password".encode())
-#             cur.execute("INSERT INTO suspiciousTable (usernameSUSSY) VALUES (%s)", [username])
-#             conn.commit()
-#             cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [username])
-#             count = cur.fetchone()[0]
-#             client_socket.send(f"User added to suspiciousTable {count} time(s)".encode())
-#     except:
-#         client_socket.send("Login failed!".encode())
-    
-#     Menu(client_socket)
-
 
 def register(client_socket):
     client_socket.send("Username: ".encode())
@@ -367,17 +380,55 @@ def register(client_socket):
     cur.execute("INSERT INTO userInfo (username,password,email,role) VALUES (%s, %s, %s, %s)", [username,hashpass,email,"normal"])
     conn.commit()
 
+    #factor, recoverycode, ip of client
     factor = generateFactor(username)
-    cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [factor,username])
+    recoveryCode = getRecoveryCode(factor)
+    client_ip = client_socket.getpeername()[0]
+    
+    cur.execute("UPDATE userInfo SET factor = %s , recoverycode = %s, ipaddress = %s WHERE username = %s", [factor, recoveryCode, client_ip, username])
     conn.commit()
     cur.close()
     conn.close()
     client_socket.send(("FACTOR:" + username+ "/"+ factor).encode())
-    client_socket.send("Register successfully!\n".encode())
+    client_socket.send(f"Register successfully! Please remember this recovery code: {recoveryCode}\n".encode())
 
     Menu(client_socket)
 
+def forget(client_socket):
+    client_socket.send("Enter your username to recover: ".encode())
+    username = client_socket.recv(1024).decode()
+    
+    client_socket.send("Enter your recovery code: ".encode())
+    recoverycode = client_socket.recv(1024).decode()
 
+    cur = conn.cursor()
+    cur.execute("SELECT recoverycode, factor, email FROM userInfo WHERE username = %s", [username])
+    result = cur.fetchone()
+    storedRecoveryCode = result[0]
+    factor = result[1]
+    email = result[2]
+    if storedRecoveryCode == recoverycode:
+        client_socket.send("Enter your new password: ".encode())
+        newpassword1 = client_socket.recv(1024).decode()
+        client_socket.send("Please confirm your password: ".encode())
+        newpassword2 = client_socket.recv(1024).decode()
+        if newpassword1 != newpassword2:
+            client_socket.send("Your password did not match. Please try again".encode())
+            cur.close()
+            return Menu(client_socket)
+        else:
+            newRecoveryCode = getRecoveryCode(factor)
+            cur.execute("UPDATE userInfo SET password = %s, recoverycode = %s WHERE username = %s", [newpassword1, newRecoveryCode, username])
+            conn.commit()
+            sendRecoveryCode(email, newRecoveryCode)
+            client_socket.send("Password changed successfully".encode()) 
+            cur.close()
+            return Menu(client_socket)
+    else:       
+        client_socket.send("Wrong recovery code! Please try again".encode())
+        cur.close()
+        return Menu(client_socket)
+    
 def Menu(client_socket):
     while True:
         command = client_socket.recv(1024).decode().strip()
@@ -385,12 +436,13 @@ def Menu(client_socket):
             "/login": login,
             "/register": register,
             "/exit": exitProgram,
+            "/forget": forget,
         }
         handler = switch.get(command, invalidCommand)
         handler(client_socket)
 
 def showHelp(client_socket):
-    client_socket.send("/login: login\n/createuser: create new user\n/deleteuser: delete existing user\n/search: search for data\n/insert: insert data\n/update: update data\n/delete: delete data\n/exit: disconnect\n".encode())
+    client_socket.send("/login: login\n/createuser: create new user\n/forget: forget password\n/deleteuser: delete existing user\n/search: search for data\n/insert: insert data\n/update: update data\n/delete: delete data\n/exit: disconnect\n".encode())
 
 def exitProgram(client_socket):
     client_socket.send("User disconnected!\n".encode())

@@ -2,7 +2,7 @@ import os
 import urllib.parse as up
 import psycopg2
 from argon2 import PasswordHasher
-up.uses_netloc.append("rslgnkrk")
+up.uses_netloc.append("rbzkziqg")
 url = up.urlparse("postgres://rbzkziqg:rGJI2QMcTMo7C6GGrC1f1X82FqysVz2H@satao.db.elephantsql.com/rbzkziqg")
 conn = None
 cur = None
@@ -40,6 +40,8 @@ try:
                             email varchar(100) NOT NULL,
                             role varchar(10) REFERENCES rolePermissions(role),
                             factor varchar(40),
+                            ipaddress varchar(30),
+                            recoverycode varchar(10),
                             status INTEGER NOT NULL DEFAULT 0 )'''
     cur.execute(create_script)
     insert_script = 'INSERT INTO userInfo (username, password, email, role, factor) VALUES (%s ,%s, %s ,%s ,%s)'
@@ -54,7 +56,7 @@ try:
                         emailSUSSY varchar(40) )'''
     cur.execute(create_script)
     
-    #trigger for sussyTable
+    #trigger for sussyTable email the same with userInfo email
     trigger_script1 = '''CREATE OR REPLACE FUNCTION update_sussy_email()
     RETURNS TRIGGER AS $$
     BEGIN
