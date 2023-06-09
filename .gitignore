@@ -1,5 +1,5 @@
 .env
 node_modules
-console/Server/key
-console/Client/key
-console/Key
+Console/ca_bundle.crt
+Console/certificate.crt
+Console/server.key

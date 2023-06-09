@@ -3,7 +3,6 @@ import urllib.parse as up
 import psycopg2
 import socket
 import threading
-import multiprocessing
 import binascii
 import hmac
 import hashlib
@@ -22,9 +21,9 @@ stop_threads = False
 dir_path = os.path.dirname(os.path.abspath(__file__))
 
 # Construct the paths to the certificate, ca and key files
-ca_bundle_file = os.path.join(dir_path, "key/ca_bundle.crt")
-cert_file = os.path.join(dir_path, "key/certificate.crt")
-key_file = os.path.join(dir_path, "key/private.key")
+ca_bundle_file = os.path.join(dir_path, "ca_bundle.crt")
+cert_file = os.path.join(dir_path, "certificate.crt")
+key_file = os.path.join(dir_path, "server.key")
 
 # create an SSL context 
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)

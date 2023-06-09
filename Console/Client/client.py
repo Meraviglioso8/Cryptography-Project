@@ -1,25 +1,25 @@
 import socket
 import ssl
 import threading
-import requests
 import hmac
 import hashlib
 import struct
 import time
 from binascii import hexlify
 from getpass import getpass
+import certifi
 #global value
 otp =''
 stop_threads = False
 # SSL context
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 context.minimum_version = ssl.TLSVersion.TLSv1_3
-context.load_verify_locations(cafile="certificate.crt")
-context.verify_mode = ssl.CERT_REQUIRED
+# find the ca cert
+context.load_verify_locations(cafile=certifi.where())
 
 # Connect to the server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client = context.wrap_socket(client, server_hostname="Group6")
+client = context.wrap_socket(client, server_hostname= "nghiencaphesua.cloud")
 client.connect(("localhost", 9999))
 
 print("Client connected successfully")
@@ -105,24 +105,24 @@ def generate_totp(secret_key, state=0):
     return totp_code
 
 def main():
-    # Verify cert
-    cert = client.getpeercert()
-    if cert:
-        issuer = dict(x[0] for x in cert['issuer'])
-        subject = dict(x[0] for x in cert['subject'])
-        if issuer['commonName'] == "Group6" and subject['commonName'] == "Group6":
-            print("Server certificate verified")
+    try:
+        client.do_handshake()
+        cert = client.getpeercert()
+
+        # check the cert if it is CA, not CA close client
+        if cert:
+            print("Server cert verified")
+
+            receive_thread = threading.Thread(target=receive)
+            receive_thread.start()
+            send_thread = threading.Thread(target=send)
+            send_thread.start()
         else:
-            print("Server certificate verification failed")
-    else:
-        print("Server certificate verification failed")
-
-    receive_thread = threading.Thread(target=receive)
-    receive_thread.start()
-    send_thread = threading.Thread(target=send)
-    send_thread.start()
-
-
+            print("Server cert verification failed. Close the connection.")
+            client.close()
+    except ssl.SSLError as e:
+        print("SSL handshake error:", e)
+        client.close()
 
 if __name__ == "__main__":
     main()
