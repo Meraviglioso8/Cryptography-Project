@@ -1,7 +1,17 @@
 import os
 import urllib.parse as up
 import psycopg2
+from binascii import unhexlify
 from argon2 import PasswordHasher
+from cfg import AES_KEY
+from Crypto.Cipher import AES
+
+def encrypt(in_str):
+    enc = AES.new(unhexlify(AES_KEY), AES.MODE_GCM)
+    ciphertext, tag = enc.encrypt_and_digest(in_str.encode())
+    nonce = enc.nonce
+    return ciphertext.hex(), tag.hex(),nonce.hex()
+
 up.uses_netloc.append("rbzkziqg")
 url = up.urlparse("postgres://rbzkziqg:rGJI2QMcTMo7C6GGrC1f1X82FqysVz2H@satao.db.elephantsql.com/rbzkziqg")
 conn = None
@@ -36,16 +46,16 @@ try:
     create_script = ''' CREATE TABLE IF NOT EXISTS userInfo (
                             id SERIAL NOT NULL PRIMARY KEY,
                             username varchar(40) NOT NULL,
-                            password varchar(100) NOT NULL,
-                            email varchar(100) NOT NULL,
+                            password varchar(140) NOT NULL,
+                            email varchar(140) NOT NULL,
                             role varchar(10) REFERENCES rolePermissions(role),
-                            factor varchar(40),
+                            factor varchar(140),
                             ipaddress varchar(30),
-                            recoverycode varchar(10),
+                            recoverycode varchar(140),
                             status INTEGER NOT NULL DEFAULT 0 )'''
     cur.execute(create_script)
     insert_script = 'INSERT INTO userInfo (username, password, email, role, factor) VALUES (%s ,%s, %s ,%s ,%s)'
-    insert_values = [("mera",ph.hash("mera"),"harukasociu2308@gmail.com","normal","37fceec33bbdacf998c57171d230fa9e"), ("kizme",ph.hash("kizme"),"kietngo255@gmail.com","normal","9f8ba164ed55fe5e2b77c4d4b028e0b3"), ("tlhung",ph.hash("tlhung")," ","normal","236919a82f2eab4e4eb5fe76d8f7844f")]
+    insert_values = [("mera",ph.hash("mera"),str(encrypt("harukasociu2308@gmail.com")),"normal",str(encrypt("37fceec33bbdacf998c57171d230fa9e"))), ("kizme",ph.hash("kizme"),str(encrypt("kietngo255@gmail.com")),"normal",str(encrypt("9f8ba164ed55fe5e2b77c4d4b028e0b3"))), ("tlhung",ph.hash("tlhung"),str(encrypt("vallol@gmail.com")),"normal",str(encrypt("236919a82f2eab4e4eb5fe76d8f7844f")))]
     for i in insert_values:
         cur.execute(insert_script,i)
 
@@ -53,7 +63,7 @@ try:
     cur.execute('drop table if exists suspiciousTable')
     create_script = '''CREATE TABLE IF NOT EXISTS suspiciousTable(
                         usernameSUSSY varchar(40),
-                        emailSUSSY varchar(40) )'''
+                        emailSUSSY varchar(140) )'''
     cur.execute(create_script)
     
     #trigger for sussyTable email the same with userInfo email
@@ -84,3 +94,4 @@ finally:
         cur.close()
     if conn is not None:
         conn.close()
+789043

@@ -3,3 +3,7 @@ node_modules
 Console/ca_bundle.crt
 Console/certificate.crt
 Console/server.key
+Console/Server/server.csr
+*.key
+Console/Server/.vscode/tasks.json
+*.crt
