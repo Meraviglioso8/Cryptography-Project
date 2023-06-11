@@ -477,7 +477,7 @@ def forget(client_socket):
             return Menu(client_socket)
         else:
             newRecoveryCode = getRecoveryCode(factor)
-            cur.execute("UPDATE userInfo SET password = %s, recoverycode = %s WHERE username = %s", [ph.hash(newpassword1), str(encrypt(newRecoveryCode)), username])
+            cur.execute("UPDATE userInfo SET password = %s, recoverycode = %s WHERE username = %s", [ph.hash(newpassword1), ph.hash(newRecoveryCode), username])
             conn.commit()
             sendRecoveryCode(email, newRecoveryCode)
             client_socket.send("Password changed successfully".encode()) 
