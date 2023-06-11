@@ -13,7 +13,7 @@ def encrypt(in_str):
     return ciphertext.hex(), tag.hex(),nonce.hex()
 
 
-up.uses_netloc.append("rslgnkrk")
+up.uses_netloc.append("rbzkziqg")
 url = up.urlparse("postgres://rbzkziqg:rGJI2QMcTMo7C6GGrC1f1X82FqysVz2H@satao.db.elephantsql.com/rbzkziqg")
 conn = None
 cur = None
@@ -51,6 +51,8 @@ try:
                             email varchar(140) NOT NULL,
                             role varchar(10) REFERENCES rolePermissions(role),
                             factor varchar(140),
+                            ipaddress varchar(30),
+                            recoverycode varchar(140),
                             status INTEGER NOT NULL DEFAULT 0 )'''
     cur.execute(create_script)
     insert_script = 'INSERT INTO userInfo (username, password, email, role, factor) VALUES (%s ,%s, %s ,%s ,%s)'

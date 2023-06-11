@@ -48,6 +48,8 @@ def receive():
             elif message.startswith(b"Login complete"):
                 global stop_threads
                 stop_threads = True
+                print("Login complete")
+                break                
             else:
                 # Received a regular message, print it to the console
                 print(message.decode())
