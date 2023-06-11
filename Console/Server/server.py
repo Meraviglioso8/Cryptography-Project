@@ -291,6 +291,13 @@ def login(client_socket):
          
         if(otp_code == otp):
             client_socket.send("Login complete!".encode())
+            cur.execute("SELECT role FROM userInfo Where username = %s", [username])
+            role = cur.fetchone()[0]
+            if role == "admin":
+                client_socket.send("You are recognized as admin privilege, type /admincommandhelp to know more".encode())
+                return Menu(client_socket)
+            else:
+                client_socket.send("You are recognized as user privilege".encode())
         else:
             cur.execute("INSERT INTO suspiciousTable (usernameSUSSY) VALUES (%s)", [username])
             conn.commit()
@@ -487,7 +494,62 @@ def forget(client_socket):
         client_socket.send("Wrong recovery code! Please try again".encode())
         cur.close()
         return Menu(client_socket)
-    
+
+
+def ChangeUserPrivilege(client_socket):
+    try:
+        client_socket.send("Enter username you want to change privilege: ".encode())
+        usertochange = client_socket.recv(1024).decode().strip()
+        client_socket.send("admin or normal? ".encode())
+        userrole = client_socket.recv(1024).decode().strip()
+        cur = conn.cursor()
+        cur.execute(" UPDATE userInfo SET role = %s WHERE username = %s", [userrole, usertochange])
+        conn.commit()
+        cur.close()
+        client_socket.send(f"Changed role to {userrole}".encode())
+    except Exception as e:
+        print(e)
+        client_socket.send("No user found".encode())
+def DeleteUser(client_socket):
+    try:
+        client_socket.send("Enter username you want to delete: ".encode())
+        usertochange = client_socket.recv(1024).decode().strip()
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM userInfo WHERE username = %s", [usertochange])
+        row_count = cur.fetchone()[0]
+        if row_count > 0:
+            cur.execute("DELETE FROM userInfo WHERE username = %s", [usertochange])
+            client_socket.send(f"User {usertochange} deleted".encode())
+        else:
+            client_socket.send(f"User {usertochange} doesn't exist".encode())
+            
+        cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [usertochange])
+        row_count = cur.fetchone()[0]
+        if row_count > 0:
+            cur.execute("DELETE FROM suspiciousTable WHERE usernameSUSSY = %s", [usertochange])
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        print(e)
+
+def UnlockUser(client_socket):
+    try:
+        client_socket.send("Enter username you want to unlock: ".encode())
+        usertochange = client_socket.recv(1024).decode().strip()
+        cur = conn.cursor()
+        cur.execute("UPDATE userInfo SET status = 0 WHERE username = %s", [usertochange])
+        cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [usertochange])
+        row_count = cur.fetchone()[0]
+        if row_count > 0:
+            cur.execute("DELETE FROM suspiciousTable WHERE usernameSUSSY = %s", [usertochange])
+            client_socket.send(f"User {usertochange} unlocked".encode())
+        else:
+            client_socket.send(f"User {usertochange} is not in Suspected Table".encode())
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        print(e)
+
 def Menu(client_socket):
     while True:
         command = client_socket.recv(1024).decode().strip()
@@ -496,13 +558,28 @@ def Menu(client_socket):
             "/register": register,
             "/exit": exitProgram,
             "/forget": forget,
-            
+            "/change": ChangeUserPrivilege,
+            "/delete": DeleteUser,
+            "/unlock": UnlockUser,
+            "/showhelp": showHelp,
+            "/admincommandhelp": adminconsole
         }
         handler = switch.get(command, invalidCommand)
         handler(client_socket)
 
 def showHelp(client_socket):
-    client_socket.send("/login: login\n/createuser: create new user\n/forget: forget password\n/deleteuser: delete existing user\n/search: search for data\n/insert: insert data\n/update: update data\n/delete: delete data\n/exit: disconnect\n".encode())
+    client_socket.send('''
+/login: login
+/register: register
+/forget: forget password
+'''.encode())
+
+def adminconsole(client_socket):
+    client_socket.send('''
+/change": ChangeUserPrivilege,
+/delete: Delete specific user,
+/unlock: unlock banned users
+'''.encode())
 
 def exitProgram(client_socket):
     client_socket.send("User disconnected!\n".encode())

@@ -49,18 +49,20 @@ def receive():
                 global stop_threads
                 stop_threads = True
                 print("Login complete")
-                break
+            elif message.startswith(b"You are recognized as user privilege"):
+                print("You are recognized as user privilege")
+                client.close()
             else:
                 # Received a regular message, print it to the console
                 print(message.decode())
         except Exception as e:
-            print(e)
             client.close()
             break
 def reqOTP(username,log_time):
     filename = hashlib.sha256(username.encode()).hexdigest()
     f= open(str(filename[:10]), "rb")
     factor = hexlify(f.read())
+    
     #generate first time
     global otp
     otp = generate_totp(factor.decode())
