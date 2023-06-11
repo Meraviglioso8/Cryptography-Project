@@ -47,7 +47,6 @@ up.uses_netloc.append(DB_PASS)
 url = up.urlparse(DB_URL)
 conn = None
 cur = None
-ph = PasswordHasher() 
 tempOTP =''
 
 #connect database
@@ -160,7 +159,8 @@ def reqOtp(username,log_time):
     try:
         cur = conn.cursor()
         cur.execute("SELECT factor FROM userInfo WHERE username = %s", [username])
-        factor = cur.fetchall()[0][0]
+        data = ast.literal_eval(cur.fetchone()[0])
+        factor = getDecryptData(data)
         cur.close()
         #user name exists or not
         if len(factor) > 0: 
@@ -190,18 +190,18 @@ def checkUsername(username):
     try:
         cur = conn.cursor()
         cur.execute("SELECT * FROM userInfo WHERE username = %s", [username])
-        result = cur.fetchall()[0]
+        result = cur.fetchall()
         cur.close()
-        if (result == False):
-            return False
-        else:
+        if (len(result)> 0):
             return True
+        else:
+            return False
     except Exception as e:
         print(e)
         return False
     
 def login(client_socket):
-    
+    ph = PasswordHasher()
     client_socket.send("Username: ".encode())
     username = client_socket.recv(1024).decode()
     
@@ -246,31 +246,35 @@ def login(client_socket):
     
     #check valid ip, if new have to auth
     client_ip = client_socket.getpeername()[0]
-    cur.execute("SELECT ipaddress, recoverycode, factor, email FROM userInfo WHERE username = %s", [username])
-    result = cur.fetchone()
-    ipofusername = result[0]
-    storedRecoveryCode =getDecryptData(ast.literal_eval(result[1]))
-    factor = getDecryptData(ast.literal_eval(result[2]))
-    email = getDecryptData(ast.literal_eval(result[3]))
+    cur.execute("SELECT ipaddress FROM userInfo WHERE username = %s", [username])
+    ipofusername =cur.fetchone()[0]
+
     if ipofusername and ipofusername != client_ip:
         client_socket.send("Login IP does not match the stored IP address. Please enter recoverycode to continue.".encode())
         recoveryCode = client_socket.recv(1024).decode()
-        if storedRecoveryCode != recoveryCode:
+        try: 
+            verifyValid = ph.verify(str(storedRecoveryCode),recoveryCode)
+        
+        except:
             client_socket.send("Invalid recovery code. Please try login again.".encode())
             cur.close()
             return Menu(client_socket)
-        else:
             # Retrieve the updated user information
-            cur.execute("SELECT * FROM userInfo WHERE username = %s ", [username])
-            updated_result = cur.fetchone()
-            newIp = (updated_result[1], updated_result[2], updated_result[3], updated_result[4], updated_result[5],client_ip , updated_result[7], updated_result[8])
-            cur.execute("INSERT INTO userInfo (username, password, email, role, factor, ipaddress, recoverycode, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", newIp)
-            storedRecoveryCode = getRecoveryCode(factor)
-            cur.execute("UPDATE userInfo SET recoverycode = %s WHERE username = %s", [storedRecoveryCode, username])
-            conn.commit()
-            client_socket.send("Added new login location".encode())
-            sendRecoveryCode(email, storedRecoveryCode)
-            cur.close()
+
+        storedRecoveryCode = getRecoveryCode(factor)
+        encRecvCode = ph.hash(storedRecoveryCode)
+        factor = generateFactor(username)
+        encFactor = str(encrypt(factor))
+
+        cur.execute("UPDATE userInfo SET recoverycode = %s, factor = %s,ipaddress = %s, WHERE username = %s", [encRecvCode,encFactor,client_ip,username])
+        conn.commit()
+        client_socket.send("Change login location".encode())
+        client_socket.send(("FACTOR:" + username+ "/"+ factor).encode())
+        cur.execute("SELECT email FROM userInfo WHERE username = %s", [username])
+        data = ast.literal_eval(cur.fetchone()[0])
+        email = getDecryptData(data)
+        sendRecoveryCode(email, storedRecoveryCode)
+        cur.close()
     #start generating OTP as username + password are valid
 
     if (verifyValid == True):
@@ -283,6 +287,7 @@ def login(client_socket):
         otp_code = client_socket.recv(1024).decode()
         global stop_threads
         stop_threads = True
+        thread.join()
          
         if(otp_code == otp):
             client_socket.send("Login complete!".encode())
@@ -392,6 +397,7 @@ def sendRecoveryCode(gmailofUser, recoveryCode):
         
 
 def register(client_socket):
+    ph = PasswordHasher()
     client_socket.send("Username: ".encode())
     username = client_socket.recv(1024).decode()
     
@@ -416,8 +422,6 @@ def register(client_socket):
         cur = conn.cursor()
         cur.execute("SELECT email FROM userInfo")
         data = cur.fetchall()
-        print(data)
-        cur.close()
         for mail in data:
             tup = mail[0]
             if(getDecryptData(ast.literal_eval(tup)) == email):
@@ -425,28 +429,29 @@ def register(client_socket):
                 register(client_socket)
             
         hashpass = ph.hash(password)
-        cur = conn.cursor()
-        cur.execute("INSERT INTO userInfo (username,password,email,role) VALUES (%s, %s, %s, %s)", [username,hashpass,email,"normal"])
-        conn.commit()
+        cur.execute("INSERT INTO userInfo (username,password,email,role) VALUES (%s, %s, %s, %s)", [username,hashpass,str(encrypt(email)),"normal"])
 
     #factor, recoverycode, ip of client
         
         factor = generateFactor(username)
+        encfactor = str(encrypt(factor))
         recoveryCode = getRecoveryCode(factor)
+        hashRecoveryCode = ph.hash(recoveryCode)
         client_ip = client_socket.getpeername()[0]
     
-        cur.execute("UPDATE userInfo SET factor = %s , recoverycode = %s, ipaddress = %s WHERE username = %s", [str(encrypt(factor)), str(encrypt(recoveryCode)), client_ip, username])
+        cur.execute("UPDATE userInfo SET factor = %s , recoverycode = %s, ipaddress = %s WHERE username = %s",[encfactor, hashRecoveryCode, client_ip, username])
         conn.commit()
         cur.close()
-        conn.close()
         client_socket.send(("FACTOR:" + username+ "/"+ factor).encode())
         client_socket.send(f"Register successfully! Please remember this recovery code: {recoveryCode}\n".encode())
+        sendRecoveryCode(email, recoveryCode)
     else:
         client_socket.send("Your email is not valid. Try again".encode())
 
     Menu(client_socket)
 
 def forget(client_socket):
+    ph = PasswordHasher()
     client_socket.send("Enter your username to recover: ".encode())
     username = client_socket.recv(1024).decode()
     
@@ -455,13 +460,13 @@ def forget(client_socket):
 
     cur = conn.cursor()
     cur.execute("SELECT recoverycode, factor, email FROM userInfo WHERE username = %s", [username])
-    data = (cur.fetchall())
-    print(data)
-    storedRecoveryCode = getDecryptData(ast.literal_eval(data[0][0]))
-    factor = getDecryptData(ast.literal_eval(data[0][1]))
-    email = getDecryptData(ast.literal_eval(data[0][2]))
+    result = cur.fetchone()
+    storedRecoveryCode = result[0]
+    factor = getDecryptData(ast.literal_eval(result[1]))
+    email = getDecryptData(ast.literal_eval(result[2])).strip()
 
-    if storedRecoveryCode == recoverycode:
+    try: 
+        verifyValid = ph.verify(str(storedRecoveryCode),recoverycode)
         client_socket.send("Enter your new password: ".encode())
         newpassword1 = client_socket.recv(1024).decode()
         client_socket.send("Please confirm your password: ".encode())
@@ -478,7 +483,7 @@ def forget(client_socket):
             client_socket.send("Password changed successfully".encode()) 
             cur.close()
             return Menu(client_socket)
-    else:       
+    except:
         client_socket.send("Wrong recovery code! Please try again".encode())
         cur.close()
         return Menu(client_socket)
@@ -491,6 +496,7 @@ def Menu(client_socket):
             "/register": register,
             "/exit": exitProgram,
             "/forget": forget,
+            
         }
         handler = switch.get(command, invalidCommand)
         handler(client_socket)
