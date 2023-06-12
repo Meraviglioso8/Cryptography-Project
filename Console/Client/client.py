@@ -20,7 +20,7 @@ context.load_verify_locations(cafile=certifi.where())
 # Connect to the server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client = context.wrap_socket(client, server_hostname= "nghiencaphesua.cloud")
-client.connect(("localhost", 9999))
+client.connect(("20.187.76.92", 9999))
 
 print("Client connected successfully")
 def receive():
@@ -49,18 +49,19 @@ def receive():
                 global stop_threads
                 stop_threads = True
                 print("Login complete")
-                break
+            elif message.startswith(b"You are recognized as user privilege"):
+                print("You are recognized as user privilege")
             else:
                 # Received a regular message, print it to the console
                 print(message.decode())
         except Exception as e:
-            print(e)
             client.close()
             break
 def reqOTP(username,log_time):
     filename = hashlib.sha256(username.encode()).hexdigest()
     f= open(str(filename[:10]), "rb")
     factor = hexlify(f.read())
+    
     #generate first time
     global otp
     otp = generate_totp(factor.decode())
