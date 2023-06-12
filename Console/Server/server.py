@@ -264,7 +264,6 @@ def login(client_socket):
         data = ast.literal_eval(cur.fetchone()[0])
         email = getDecryptData(data)
         sendRecoveryCode(email, storedRecoveryCode)
-        cur.close()
     #start generating OTP as username + password are valid
 
     if (verifyValid == True):
