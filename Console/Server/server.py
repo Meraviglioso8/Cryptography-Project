@@ -30,7 +30,7 @@ ca_bundle_file = os.path.join(dir_path, "/etc/ssl/certs/ca_bundle.crt")
 cert_file = os.path.join(dir_path, "/etc/ssl/certs/certificate.crt")
 key_file = os.path.join(dir_path, "/etc/ssl/private/server.key")
 
-# create an SSL context 
+# create an SSL context
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.minimum_version = ssl.TLSVersion.TLSv1_3
 context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=None)
@@ -63,16 +63,16 @@ except Exception as error:
 
 cur = conn.cursor()
 
-    
+
 def getRoles(username):
     try:
-       
+
         cur = conn.cursor()
         cur.execute("SELECT role FROM userInfo WHERE username = %s", [username])
         result = cur.fetchall()[0][0]
     except Exception as e:
         print(e)
-    
+
     if result is None:
         return False # user not found
     return result
@@ -109,7 +109,7 @@ def getAES_KEY():
 def generateFactor(username):
     role = getRoles(username)
     try:
-        
+
         cur = conn.cursor()
         cur.execute("SELECT delete_user, search_data, insert_data, update_data, delete_data FROM rolePermissions WHERE role = %s", [role])
         result = cur.fetchall()
@@ -126,8 +126,8 @@ def generateFactor(username):
                     'delete_data': result[0][4]
                 }
         permissions_bin = ''.join([bin(value)[2:].zfill(1) for value in permissions.values()])
-        random1 = bin(getrandbits(8))[2:]  
-        random2 = bin(getrandbits(8))[2:]  
+        random1 = bin(getrandbits(8))[2:]
+        random2 = bin(getrandbits(8))[2:]
         factor = permissions_bin + random1 + random2
         enc = AES.new(key, AES.MODE_GCM)
         ciphertext, tag = enc.encrypt_and_digest(factor.encode())
@@ -166,7 +166,7 @@ def decrypt (in_str,tag,nonce):
 def getDecryptData(get_data):
     get_data = decrypt(get_data[0],get_data[1],get_data[2])
     return get_data
-   
+
 
 def checkUsername(username):
     try:
@@ -181,19 +181,19 @@ def checkUsername(username):
     except Exception as e:
         print(e)
         return False
-    
+
 def login(client_socket):
     ph = PasswordHasher()
     client_socket.send("Username: ".encode())
     username = client_socket.recv(1024).decode()
-    
+
     client_socket.send("Password: ".encode())
     password = client_socket.recv(1024).decode()
     #check Invalid Username
     if (checkUsername(username) == False):  # doesn't exist
         client_socket.send("Invalid username. Please try again.".encode())
         return login(client_socket)
-    
+
     #Check incorrect Password
 
     cur = conn.cursor()
@@ -203,7 +203,7 @@ def login(client_socket):
         client_socket.send("Your account has been locked. Please contact adminstrators for more information.".encode())
         cur.close()
         return
-    
+
     cur.execute("SELECT password FROM userInfo WHERE username = %s", [username])
     data = cur.fetchall()[0][0]
     try:
@@ -233,30 +233,34 @@ def login(client_socket):
                 return
         else:
             return
-    
+
     #check valid ip, if new have to auth
     client_ip = client_socket.getpeername()[0]
-    cur.execute("SELECT ipaddress FROM userInfo WHERE username = %s", [username])
-    ipofusername =cur.fetchone()[0]
+    cur.execute("SELECT ipaddress, recoverycode FROM userInfo WHERE username = %s", [username])
+    ans=cur.fetchone()
+
+    ipofusername =ans[0]
+    storedRecoveryCode = ans[1]
 
     if ipofusername and ipofusername != client_ip:
         client_socket.send("Login IP does not match the stored IP address. Please enter recoverycode to continue.".encode())
         recoveryCode = client_socket.recv(1024).decode()
-        try: 
+        try:
             verifyValid = ph.verify(str(storedRecoveryCode),recoveryCode)
-        
+
         except:
             client_socket.send("Invalid recovery code. Please try login again.".encode())
             cur.close()
             return
             # Retrieve the updated user information
 
-        storedRecoveryCode = getRecoveryCode(factor)
+
         encRecvCode = ph.hash(storedRecoveryCode)
         factor = generateFactor(username)
+        storedRecoveryCode = getRecoveryCode(factor)
         encFactor = str(encrypt(factor))
 
-        cur.execute("UPDATE userInfo SET recoverycode = %s, factor = %s,ipaddress = %s, WHERE username = %s", [encRecvCode,encFactor,client_ip,username])
+        cur.execute("UPDATE userInfo SET recoverycode = %s, factor = %s,ipaddress = %s WHERE username = %s", [encRecvCode,encFactor,client_ip,username])
         conn.commit()
         client_socket.send("Change login location".encode())
         client_socket.send(("FACTOR:" + username+ "/"+ factor).encode())
@@ -270,7 +274,7 @@ def login(client_socket):
         client_socket.send(("Start"+username).encode())
         client_socket.send("Input your OTP: ".encode())
         otp_code = client_socket.recv(1024).decode()
-                
+
         try:
             cur = conn.cursor()
             cur.execute("SELECT factor FROM userInfo WHERE username = %s", [username])
@@ -278,7 +282,7 @@ def login(client_socket):
             factor = getDecryptData(data)
         except Exception as e:
             print(e)
-            return 
+            return
         #user name exists or not
         if(otp_code == generate_totp(factor) or otp_code ==generate_totp(factor,-1)):
             client_socket.send("Login complete!".encode())
@@ -312,10 +316,10 @@ def login(client_socket):
                     cur.close()
                     return
                 except:
-                    return 
+                    return
             else:
                 return
-    return 
+    return
 
 #send email if count > 5
 def sendEmail(count, gmailofSussy):
@@ -323,11 +327,11 @@ def sendEmail(count, gmailofSussy):
         #send annoucement your account has been locked
         sendtogmail(gmailofSussy)
         # change status as to protect sussy login
-        
+
 
 def sendtogmail(gmailofSussy):
     gmail_user = os.getenv('GMAIL_USER')
-    gmail_app_password = ('GMAIL_PASS')
+    gmail_app_password = os.getenv('GMAIL_PASS')
 
     sent_from = gmail_user
     sent_to = [gmailofSussy]
@@ -357,7 +361,7 @@ def sendtogmail(gmailofSussy):
         print('Email sent!')
     except Exception as exception:
         print("Error: %s!\n\n" % exception)
-        
+
 def sendRecoveryCode(gmailofUser, recoveryCode):
     gmail_user = os.getenv('GMAIL_USER')
     gmail_app_password = os.getenv('GMAIL_PASS')
@@ -391,13 +395,13 @@ def sendRecoveryCode(gmailofUser, recoveryCode):
         print('Email sent!')
     except Exception as exception:
         print("Error: %s!\n\n" % exception)
-        
+
 
 def register(client_socket):
     ph = PasswordHasher()
     client_socket.send("Username: ".encode())
     username = client_socket.recv(1024).decode()
-    
+
     client_socket.send("Password: ".encode())
     password = client_socket.recv(1024).decode()
     client_socket.send("Email: ".encode())
@@ -413,7 +417,7 @@ def register(client_socket):
     except:
         pass
 
-    
+
     if(re.fullmatch(regex, email)):
         #check existed email:
         cur = conn.cursor()
@@ -424,18 +428,18 @@ def register(client_socket):
             if(getDecryptData(ast.literal_eval(tup)) == email):
                 client_socket.send("Your email already been used. Try again".encode())
                 register(client_socket)
-            
+
         hashpass = ph.hash(password)
         cur.execute("INSERT INTO userInfo (username,password,email,role) VALUES (%s, %s, %s, %s)", [username,hashpass,str(encrypt(email)),"normal"])
 
     #factor, recoverycode, ip of client
-        
+
         factor = generateFactor(username)
         encfactor = str(encrypt(factor))
         recoveryCode = getRecoveryCode(factor)
         hashRecoveryCode = ph.hash(recoveryCode)
         client_ip = client_socket.getpeername()[0]
-    
+
         cur.execute("UPDATE userInfo SET factor = %s , recoverycode = %s, ipaddress = %s WHERE username = %s",[encfactor, hashRecoveryCode, client_ip, username])
         conn.commit()
         cur.close()
@@ -451,7 +455,7 @@ def forget(client_socket):
     ph = PasswordHasher()
     client_socket.send("Enter your username to recover: ".encode())
     username = client_socket.recv(1024).decode()
-    
+
     client_socket.send("Enter your recovery code: ".encode())
     recoverycode = client_socket.recv(1024).decode()
 
@@ -462,7 +466,7 @@ def forget(client_socket):
     factor = getDecryptData(ast.literal_eval(result[1]))
     email = getDecryptData(ast.literal_eval(result[2])).strip()
 
-    try: 
+    try:
         verifyValid = ph.verify(str(storedRecoveryCode),recoverycode)
         client_socket.send("Enter your new password: ".encode())
         newpassword1 = client_socket.recv(1024).decode()
@@ -471,19 +475,19 @@ def forget(client_socket):
         if newpassword1 != newpassword2:
             client_socket.send("Your password did not match. Please try again".encode())
             cur.close()
-            return 
+            return
         else:
             newRecoveryCode = getRecoveryCode(factor)
             cur.execute("UPDATE userInfo SET password = %s, recoverycode = %s WHERE username = %s", [ph.hash(newpassword1), ph.hash(newRecoveryCode), username])
             conn.commit()
             sendRecoveryCode(email, newRecoveryCode)
-            client_socket.send("Password changed successfully".encode()) 
+            client_socket.send("Password changed successfully".encode())
             cur.close()
-            return 
+            return
     except:
         client_socket.send("Wrong recovery code! Please try again".encode())
         cur.close()
-        return 
+        return
 
 
 def ChangeUserPrivilege(client_socket):
@@ -513,7 +517,7 @@ def DeleteUser(client_socket):
             client_socket.send(f"User {usertochange} deleted".encode())
         else:
             client_socket.send(f"User {usertochange} doesn't exist".encode())
-            
+
         cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [usertochange])
         row_count = cur.fetchone()[0]
         if row_count > 0:
@@ -578,7 +582,7 @@ def showHelp(client_socket):
 
 def adminconsole(client_socket):
     client_socket.send('''
-/change": ChangeUserPrivilege,
+/change: ChangeUserPrivilege,
 /delete: Delete specific user,
 /unlock: unlock banned users
 '''.encode())
@@ -590,7 +594,7 @@ def exitProgram(client_socket):
 def invalidCommand(client_socket):
     client_socket.send("Invalid command\n".encode())
 
-def main():    
+def main():
         while True:
             client_socket, addr = server.accept()
             print(f'{addr} Connected')
