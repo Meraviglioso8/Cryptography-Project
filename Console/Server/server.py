@@ -250,6 +250,15 @@ def login(client_socket):
 
         except:
             client_socket.send("Invalid recovery code. Please try login again.".encode())
+            cur.execute("INSERT INTO suspiciousTable (usernameSUSSY,ipaddress,logtime) VALUES (%s,%s,%s)", [username,client_ip,datetime.now()])
+            conn.commit()
+            cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [username])
+            count = cur.fetchone()[0]
+            cur.execute("SELECT email FROM userInfo WHERE username = %s", [username])
+            data = ast.literal_eval(cur.fetchone()[0])
+            gmailofSussy = getDecryptData(data)
+            client_socket.send(("User added to suspiciousTable count: " + str(count)).encode())
+            sendEmail(count,gmailofSussy)
             cur.close()
             return
             # Retrieve the updated user information
@@ -485,7 +494,17 @@ def forget(client_socket):
             cur.close()
             return
     except:
+        client_ip = client_socket.getpeername()[0]
         client_socket.send("Wrong recovery code! Please try again".encode())
+        cur.execute("INSERT INTO suspiciousTable (usernameSUSSY,ipaddress,logtime) VALUES (%s,%s,%s)", [username,client_ip,datetime.now()])
+        conn.commit()
+        cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [username])
+        count = cur.fetchone()[0]
+        cur.execute("SELECT email FROM userInfo WHERE username = %s", [username])
+        data = ast.literal_eval(cur.fetchone()[0])
+        gmailofSussy = getDecryptData(data)
+        client_socket.send(("User added to suspiciousTable count: " + str(count)).encode())
+        sendEmail(count,gmailofSussy)
         cur.close()
         return
 

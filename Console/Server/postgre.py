@@ -111,10 +111,10 @@ try:
                             status INTEGER NOT NULL DEFAULT 0 )'''
     cur.execute(create_script)
     
-    insert_script = 'INSERT INTO userInfo (username, password, email, role) VALUES (%s ,%s, %s ,%s)'
-    insert_values = [("mera",ph.hash("mera"),str(encrypt("harukasociu2308@gmail.com")),"admin"), 
-                     ("kizme",ph.hash("kizme"),str(encrypt("kietngo255@gmail.com")),"admin"), 
-                     ("tlhung",ph.hash("tlhung"),str(encrypt("vallol@gmail.com")),"admin")]
+    insert_script = 'INSERT INTO userInfo (username, password, email, role, ipaddress) VALUES (%s ,%s, %s ,%s, %s)'
+    insert_values = [("mera",ph.hash("mera"),str(encrypt("harukasociu2308@gmail.com")),"admin", "192.168.2.3"), 
+                     ("kizme",ph.hash("kizme"),str(encrypt("kietngo255@gmail.com")),"admin", "192.178.12.23"), 
+                     ("tlhung",ph.hash("tlhung"),str(encrypt("vallol@gmail.com")),"admin","172.168.3.4")]
     for i in insert_values:
         cur.execute(insert_script,i)
 
