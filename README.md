@@ -53,7 +53,7 @@ organization due to the privacy and security concerns. Service providers must en
 | :-: | :-: |
 |**Python**|Use for algorithm|
 |**PyCrypto**|Use for algorithm|
-|**Pyrhon**|Use for interface, backend|
+|**Python**|Use for interface, backend|
 |**ElephantSQL**|Use for database management|
 |**Git**|Use for version control system|
 |**Security Libraries (E.g.: Bouncy Castle, OpenSSL )**|Use for implementing some cryptography functions|
