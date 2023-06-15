@@ -31,6 +31,7 @@ organization due to the privacy and security concerns. Service providers must en
 
 ![image](https://github.com/Meraviglioso8/Cryptography-Project/assets/46748862/ad1bf63f-9107-4389-9746-9f9797baf89c)
 
+![Untitled Diagram-Page-1 drawio (5)](https://github.com/Meraviglioso8/Cryptography-Project/assets/46748862/8bce1d44-338d-46d8-a083-87f93c0f96d0)
 
 
 4.3. **Security Goals**
