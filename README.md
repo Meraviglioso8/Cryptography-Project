@@ -12,7 +12,8 @@ organization due to the privacy and security concerns. Service providers must en
 
 
 ## 3. **Scenario** ##
-![Untitled Diagram-Page-1 drawio (1)](https://user-images.githubusercontent.com/46748862/235934185-6391b380-2351-445f-b000-03f309a56086.png)
+
+![Untitled Diagram-Page-1 drawio (4)](https://github.com/Meraviglioso8/Cryptography-Project/assets/46748862/e9e6c927-4b94-4ebc-9af8-5e0e10d54642)
 
 
 
@@ -22,28 +23,28 @@ organization due to the privacy and security concerns. Service providers must en
 ## 4. **Proposed Solution** ##
 4.1. **Solution**
 
-![demo plan drawio (4)](https://user-images.githubusercontent.com/46748862/235934453-ca7faee2-5a03-4b83-b564-2e6947440bdb.png)
+![demo plan drawio (7)](https://github.com/Meraviglioso8/Cryptography-Project/assets/46748862/0f0a6ef0-c934-478e-aa79-ef2f34c08f72)
 
 
 
 4.2. **Demo Architecture**
 
-![Untitled Diagram-Copy of Page-1 drawio (1)](https://user-images.githubusercontent.com/46748862/235934317-97daece5-125a-4ca2-ab7b-acbcb682f213.png)
+![image](https://github.com/Meraviglioso8/Cryptography-Project/assets/46748862/ad1bf63f-9107-4389-9746-9f9797baf89c)
+
 
 
 4.3. **Security Goals**
 
 
+![image](https://github.com/Meraviglioso8/Cryptography-Project/assets/46748862/d41cedea-3eb2-457c-8e2c-3f17cb6eeee7)
 
-
-![sECURITYGOAL-Page-1 drawio](https://user-images.githubusercontent.com/46748862/235933942-5a0204c0-c2d3-4f49-b8d8-bc6bbe04f339.png)
 
 
 
 4.3. **Research Goals**
 
+![sECURITYGOAL-Copy of Page-1 drawio (2)](https://github.com/Meraviglioso8/Cryptography-Project/assets/46748862/23d3e63b-6a4f-488c-99be-c8a989b3f8e3)
 
-![sECURITYGOAL-Copy of Page-1](https://user-images.githubusercontent.com/46748862/235934891-6dc8a253-ebcd-48cd-91b7-75b4dd11ce51.png)
 
 
 
@@ -52,11 +53,11 @@ organization due to the privacy and security concerns. Service providers must en
 | :-: | :-: |
 |**Python**|Use for algorithm|
 |**PyCrypto**|Use for algorithm|
-|**C# and DotNet**|Use for interface, backend|
-|**Microsoft SQL**|Use for database management|
+|**Pyrhon**|Use for interface, backend|
+|**ElephantSQL**|Use for database management|
 |**Git**|Use for version control system|
 |**Security Libraries (E.g.: Bouncy Castle, OpenSSL )**|Use for implementing some cryptography functions|
-- **Hardware Resources:** Laptop, Smartphone.
+- **Hardware Resources:** Laptop, Android Smartphone.
 - **Optional Hardware Resources:** Switch, router, … (Base on real situation).
 
 5.2 **Mid - term Task assignment**
@@ -75,7 +76,7 @@ organization due to the privacy and security concerns. Service providers must en
 |**Research on Algorithms, Cloud Platform, Environments, Libraries**|Team|
 |**Controlling implementation of the architecture of the proposed scheme model**|Huyền|
 |**Implementing Database Server**|Hưng|
-|**Implementing the Web Application Server**|Huyền, Kiệt|
+|**Implementing the Application, Mobile App**|Huyền, Kiệt|
 |**Documenting the Demo application**|Huyền|
 |**Presenting the Demo**|Team|
 
@@ -89,6 +90,6 @@ organization due to the privacy and security concerns. Service providers must en
 5.5 **References**
 
 - 1\. Said, W., Mostafa, E., Hassan, M., Mostafa, A., & T. (2021, January 1). A Multi-Factor Authentication-Based Framework for Identity Management in Cloud Applications. Tech Science Press. https://doi.org/10.32604/cmc.2022.023554
-- 2\. Framework for client side AES encryption technique in cloud computing. (n.d.). Framework for Client Side AES Encryption Technique in Cloud Computing | IEEE Conference Publication | IEEE Xplore. https://ieeexplore.ieee.org/document/7154763
+
 
 
