@@ -29,20 +29,16 @@ def receive():
             message = client.recv(1024)
             if message.startswith(b"FACTOR:"):
             # Received the encrypted factor, save it to file
-                factor = message[-32:]
-                username = message.decode().split(':')[1].split('/')[0]
-                filename = hashlib.sha256(username.encode()).hexdigest()
-                with open(str(filename[:10]), "wb") as f:
+                factor = message[7:]
+                with open("factor", "wb") as f:
                     f.write(bytes.fromhex(factor.decode()))
                 print("factor saved to file. input OK for confirmation")
             #start generating OTP ass username + password is valid
             elif message.startswith(b"Start"):
                 username = message.decode()[5:]
                 log_time = int(time.time())
-                thread = threading.Thread(target=reqOTP,args=(username,log_time))
+                thread = threading.Thread(target=reqOTP,args=("factor",log_time))
                 thread.start()
-                
-                
                 print("Please open OTP file. Note that OTP only valid in a small amount of time.")
             #stop generate OTP as login successfully
             elif message.startswith(b"Login complete"):
@@ -58,15 +54,13 @@ def receive():
             client.close()
             break
 def reqOTP(username,log_time):
-    filename = hashlib.sha256(username.encode()).hexdigest()
-    f= open(str(filename[:10]), "rb")
+    f= open(username, "rb")
     factor = hexlify(f.read())
     
     #generate first time
     global otp
     otp = generate_totp(factor.decode())
-    filename = hashlib.sha256(username.encode()).hexdigest()
-    with open(str(filename[:10]) + "_OTP", "w") as f:
+    with open(username + "_OTP", "w") as f:
         f.write(otp)
 
     while True:
@@ -75,7 +69,7 @@ def reqOTP(username,log_time):
         if (int(time.time())- log_time == 60):
             log_time = int(time.time())
             otp = generate_totp(factor.decode())
-            with open(str(filename[:10]) + "_OTP", "w") as f:
+            with open(username + "_OTP", "w") as f:
                 f.write(otp)
         #stop thread when have input OTP
         if stop_threads == True:

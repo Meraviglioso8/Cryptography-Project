@@ -105,7 +105,7 @@ try:
                             password varchar(140) NOT NULL,
                             email varchar(140) NOT NULL,
                             role varchar(10) REFERENCES rolePermissions(role),
-                            factor varchar(140),
+                            factor varchar(210),
                             ipaddress varchar(30),
                             recoverycode varchar(140),
                             status INTEGER NOT NULL DEFAULT 0 )'''
@@ -114,7 +114,7 @@ try:
     insert_script = 'INSERT INTO userInfo (username, password, email, role, ipaddress) VALUES (%s ,%s, %s ,%s, %s)'
     insert_values = [("mera",ph.hash("mera"),str(encrypt("harukasociu2308@gmail.com")),"admin", "192.168.2.3"), 
                      ("kizme",ph.hash("kizme"),str(encrypt("kietngo255@gmail.com")),"admin", "192.178.12.23"), 
-                     ("tlhung",ph.hash("tlhung"),str(encrypt("vallol@gmail.com")),"admin","172.168.3.4")]
+                     ("tlhung",ph.hash("tlhung"),str(encrypt("vallol@gmail.com")),"admin","172.168.3.4"),]
     for i in insert_values:
         cur.execute(insert_script,i)
 

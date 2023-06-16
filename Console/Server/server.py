@@ -44,8 +44,8 @@ server = context.wrap_socket(server, server_side=True)
 print("Server starting...")
 
 #set up database
-up.uses_netloc.append(os.getenv('DB_PASS'))
-url = up.urlparse(os.getenv('DB_URL'))
+up.uses_netloc.append('rbzkziqg')
+url = up.urlparse('postgres://rbzkziqg:rGJI2QMcTMo7C6GGrC1f1X82FqysVz2H@satao.db.elephantsql.com/rbzkziqg')
 conn = None
 cur = None
 tempOTP =''
@@ -61,12 +61,10 @@ try:
 except Exception as error:
         print(error)
 
-cur = conn.cursor()
 
 
 def getRoles(username):
     try:
-
         cur = conn.cursor()
         cur.execute("SELECT role FROM userInfo WHERE username = %s", [username])
         result = cur.fetchall()[0][0]
@@ -83,6 +81,7 @@ def generate_totp(secret_key, state=0):
     time_steps = (current_time // time_interval) + state
     time_steps_bytes = struct.pack(">Q", time_steps)
     secret_key_bytes = secret_key.encode("ascii")
+
     # Generate an HMAC-SHA1 hash of the time steps using the secret key
     hmac_hash = hmac.new(secret_key_bytes, time_steps_bytes, hashlib.sha3_256).digest()
 
@@ -95,16 +94,11 @@ def generate_totp(secret_key, state=0):
     return totp_code
 
 def getAES_KEY():
-    sudo_password = os.getenv('LINUX')
-    command = 'mount -t vboxsf myfolder /home/matmahocne/Server'.split()
-
-    p = Popen(['sudo', '-S'] + command, stdin=PIPE, stderr=PIPE,
-        universal_newlines=True)
-    p.communicate(sudo_password + '\n')[1]
-    command =  f"sudo tpm2_nvread 0x1500016 -C o"
+    command = f"sudo tpm2_unseal -c seal.ctx -p pcr:sha256:0,1,2,3"
+    command_1 =  f"sudo tpm2_flushcontext -t"
     passw = check_output(command, shell = True)
-    aes_key = passw.decode()[0:32]
-    return aes_key
+    run(command_1,shell=True)
+    return passw.decode()[0:32]
 
 def generateFactor(username):
     role = getRoles(username)
@@ -117,7 +111,6 @@ def generateFactor(username):
         print(e)
 
     if result:
-        key = unhexlify(getAES_KEY())
         permissions = {
                     'delete_user': result[0][0],
                     'search_data': result[0][1],
@@ -126,22 +119,14 @@ def generateFactor(username):
                     'delete_data': result[0][4]
                 }
         permissions_bin = ''.join([bin(value)[2:].zfill(1) for value in permissions.values()])
-        random1 = bin(getrandbits(8))[2:]
-        random2 = bin(getrandbits(8))[2:]
-        factor = permissions_bin + random1 + random2
-        enc = AES.new(key, AES.MODE_GCM)
-        ciphertext, tag = enc.encrypt_and_digest(factor.encode())
-        encryptedFactor = ciphertext.hex()
-
-        factor32char = encryptedFactor[:16] + encryptedFactor[-16:]
-         # insert the factor into the database table
-        cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [factor32char, username])
-        conn.commit() # commit the transaction to save the changes to the database
-        cur.close()
-        print(f"Factor saved to database for user {username}: {factor32char}")
-        return factor32char
+        factor = permissions_bin + bin(getrandbits(8))[2:] + bin(getrandbits(8))[2:]
+        enc = AES.new(unhexlify(getAES_KEY()), AES.MODE_CTR)
+        ciphertext = enc.encrypt(factor.encode())
+        nonce = enc.nonce
+        return ciphertext.hex(), nonce.hex()
     else:
         print(f"No permissions found for role: {role}")
+        return
 
 #get recoverycode
 def getRecoveryCode(factor32char):
@@ -166,7 +151,12 @@ def decrypt (in_str,tag,nonce):
 def getDecryptData(get_data):
     get_data = decrypt(get_data[0],get_data[1],get_data[2])
     return get_data
-
+#decrypt Factor for permission checking
+def decryptFactor(in_str,nonce):
+     in_str = unhexlify(in_str)
+     nonce = unhexlify(nonce)
+     decrypt_cipher = AES.new(unhexlify(getAES_KEY()), AES.MODE_CTR,nonce=nonce)
+     return decrypt_cipher.decrypt(in_str).decode()
 
 def checkUsername(username):
     try:
@@ -181,7 +171,25 @@ def checkUsername(username):
     except Exception as e:
         print(e)
         return False
+def getPermission(role):
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT delete_user, search_data, insert_data, update_data, delete_data FROM rolePermissions WHERE role = %s", [role])
+        result = cur.fetchall()
+        permissions = {
+                    'delete_user': result[0][0],
+                    'search_data': result[0][1],
+                    'insert_data': result[0][2],
+                    'update_data': result[0][3],
+                    'delete_data': result[0][4]
+                }
+    except:
+        permissions = None
+        print("No valid permission found")
+        return
+    return''.join([bin(value)[2:].zfill(1) for value in permissions.values()])
 
+#LOGIN function
 def login(client_socket):
     ph = PasswordHasher()
     client_socket.send("Username: ".encode())
@@ -261,18 +269,20 @@ def login(client_socket):
             sendEmail(count,gmailofSussy)
             cur.close()
             return
+        
             # Retrieve the updated user information
 
 
-        encRecvCode = ph.hash(storedRecoveryCode)
+        
         factor = generateFactor(username)
-        storedRecoveryCode = getRecoveryCode(factor)
-        encFactor = str(encrypt(factor))
+        storedRecoveryCode = getRecoveryCode(factor[0])
+        encRecvCode = ph.hash(storedRecoveryCode)
+        encFactor = str(encrypt(str(factor)))
 
         cur.execute("UPDATE userInfo SET recoverycode = %s, factor = %s,ipaddress = %s WHERE username = %s", [encRecvCode,encFactor,client_ip,username])
         conn.commit()
         client_socket.send("Change login location".encode())
-        client_socket.send(("FACTOR:" + username+ "/"+ factor).encode())
+        client_socket.send(("FACTOR:"+factor[0]).encode())
         cur.execute("SELECT email FROM userInfo WHERE username = %s", [username])
         data = ast.literal_eval(cur.fetchone()[0])
         email = getDecryptData(data)
@@ -283,24 +293,32 @@ def login(client_socket):
         client_socket.send(("Start"+username).encode())
         client_socket.send("Input your OTP: ".encode())
         otp_code = client_socket.recv(1024).decode()
-
+        factor = None
         try:
             cur = conn.cursor()
             cur.execute("SELECT factor FROM userInfo WHERE username = %s", [username])
             data = ast.literal_eval(cur.fetchone()[0])
-            factor = getDecryptData(data)
+            factor = ast.literal_eval(getDecryptData(data))
+            print("CURRENT USER FACTOR: ",factor[0])
+
         except Exception as e:
             print(e)
             return
         #user name exists or not
-        if(otp_code == generate_totp(factor) or otp_code ==generate_totp(factor,-1)):
+        if(otp_code == generate_totp(factor[0]) or otp_code ==generate_totp(factor[0],-1)):
             client_socket.send("Login complete!".encode())
+
+            #get "database role"
             cur.execute("SELECT role FROM userInfo Where username = %s", [username])
             role = cur.fetchone()[0]
-            if role == "admin":
+            permission = getPermission(role)
+
+            #check role using factor
+            print(factor[1])
+            if ((decryptFactor(factor[0],factor[1])[0:5]) == permission and role =="admin"):
                 client_socket.send("You are recognized as admin privilege, type /admincommandhelp to know more".encode())
                 return adminConsole(client_socket)
-            else:
+            elif (decryptFactor(factor[0],factor[1])[0:5] == permission):
                 client_socket.send("You are recognized as user privilege".encode())
                 return
         else:
@@ -413,6 +431,7 @@ def register(client_socket):
 
     client_socket.send("Password: ".encode())
     password = client_socket.recv(1024).decode()
+
     client_socket.send("Email: ".encode())
     email = client_socket.recv(1024).decode()
     try:
@@ -440,24 +459,25 @@ def register(client_socket):
 
         hashpass = ph.hash(password)
         cur.execute("INSERT INTO userInfo (username,password,email,role) VALUES (%s, %s, %s, %s)", [username,hashpass,str(encrypt(email)),"normal"])
+        conn.commit()
 
     #factor, recoverycode, ip of client
 
         factor = generateFactor(username)
-        encfactor = str(encrypt(factor))
-        recoveryCode = getRecoveryCode(factor)
+        encfactor = str(encrypt(str(factor)))
+        recoveryCode = getRecoveryCode(factor[0])
         hashRecoveryCode = ph.hash(recoveryCode)
         client_ip = client_socket.getpeername()[0]
+        print("CURRENT USER FACTOR: ",factor[0])
 
         cur.execute("UPDATE userInfo SET factor = %s , recoverycode = %s, ipaddress = %s WHERE username = %s",[encfactor, hashRecoveryCode, client_ip, username])
         conn.commit()
         cur.close()
-        client_socket.send(("FACTOR:" + username+ "/"+ factor).encode())
+        client_socket.send(("FACTOR:" +factor[0]).encode())
         client_socket.send(f"Register successfully! Please remember this recovery code: {recoveryCode}\n".encode())
         sendRecoveryCode(email, recoveryCode)
     else:
         client_socket.send("Your email is not valid. Try again".encode())
-
     return
 
 def forget(client_socket):
@@ -468,15 +488,15 @@ def forget(client_socket):
     client_socket.send("Enter your recovery code: ".encode())
     recoverycode = client_socket.recv(1024).decode()
 
+    #get neccessary data
     cur = conn.cursor()
     cur.execute("SELECT recoverycode, factor, email FROM userInfo WHERE username = %s", [username])
     result = cur.fetchone()
     storedRecoveryCode = result[0]
-    factor = getDecryptData(ast.literal_eval(result[1]))
-    email = getDecryptData(ast.literal_eval(result[2])).strip()
 
+    #verify RecoveryCode
     try:
-        verifyValid = ph.verify(str(storedRecoveryCode),recoverycode)
+        verifyValid = ph.verify(str(storedRecoveryCode), recoverycode)
         client_socket.send("Enter your new password: ".encode())
         newpassword1 = client_socket.recv(1024).decode()
         client_socket.send("Please confirm your password: ".encode())
@@ -486,6 +506,10 @@ def forget(client_socket):
             cur.close()
             return
         else:
+            #extract factor and email when have verify success only
+
+            factor = (ast.literal_eval(getDecryptData(ast.literal_eval(result[1]))))[1]
+            email = getDecryptData(ast.literal_eval(result[2])).strip()
             newRecoveryCode = getRecoveryCode(factor)
             cur.execute("UPDATE userInfo SET password = %s, recoverycode = %s WHERE username = %s", [ph.hash(newpassword1), ph.hash(newRecoveryCode), username])
             conn.commit()
@@ -493,6 +517,8 @@ def forget(client_socket):
             client_socket.send("Password changed successfully".encode())
             cur.close()
             return
+        
+    #Verify Fail
     except:
         client_ip = client_socket.getpeername()[0]
         client_socket.send("Wrong recovery code! Please try again".encode())
@@ -524,6 +550,7 @@ def ChangeUserPrivilege(client_socket):
         print(e)
         client_socket.send("No user found".encode())
     return adminConsole(client_socket)
+
 def DeleteUser(client_socket):
     try:
         client_socket.send("Enter username you want to delete: ".encode())
@@ -533,6 +560,7 @@ def DeleteUser(client_socket):
         row_count = cur.fetchone()[0]
         if row_count > 0:
             cur.execute("DELETE FROM userInfo WHERE username = %s", [usertochange])
+            conn.commit()
             client_socket.send(f"User {usertochange} deleted".encode())
         else:
             client_socket.send(f"User {usertochange} doesn't exist".encode())
@@ -552,6 +580,7 @@ def UnlockUser(client_socket):
         usertochange = client_socket.recv(1024).decode().strip()
         cur = conn.cursor()
         cur.execute("UPDATE userInfo SET status = 0 WHERE username = %s", [usertochange])
+        conn.commit()
         cur.execute("SELECT COUNT(*) FROM suspiciousTable WHERE usernameSUSSY = %s", [usertochange])
         row_count = cur.fetchone()[0]
         if row_count > 0:
