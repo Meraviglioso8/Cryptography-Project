@@ -335,6 +335,10 @@ def login(client_socket):
                 cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [encFactor,username])
                 conn.commit()
                 return
+            else:
+                client_socket.send("Your role was changed by the third party. Please contact admin of the service.")
+                return
+
         else:
             cur.execute("INSERT INTO suspiciousTable (usernameSUSSY,ipaddress,logtime) VALUES (%s,%s,%s)", [username,client_ip,datetime.now()])
             conn.commit()
@@ -510,10 +514,21 @@ def forget(client_socket):
     #verify RecoveryCode
     try:
         verifyValid = ph.verify(str(storedRecoveryCode), recoverycode)
-        client_socket.send("Enter your new password: ".encode())
-        newpassword1 = client_socket.recv(1024).decode()
-        client_socket.send("Please confirm your password: ".encode())
-        newpassword2 = client_socket.recv(1024).decode()
+        cur.execute("SELECT role FROM userInfo Where username = %s", [username])
+        #check role from factor
+
+        role = cur.fetchone()[0]
+        permission = getPermission(role)
+        factor = (ast.literal_eval(getDecryptData(ast.literal_eval(result[1]))))[1]
+
+        if ((decryptFactor(factor[0],factor[1])[0:5]) == permission):
+            newpassword1 = client_socket.recv(1024).decode()
+            client_socket.send("Please confirm your password: ".encode())
+            newpassword2 = client_socket.recv(1024).decode()
+        else:
+            client_socket.send("Your role was changed by the third party. Please contact admin of the service.")
+            return
+        
         if newpassword1 != newpassword2:
             client_socket.send("Your password did not match. Please try again".encode())
             cur.close()
