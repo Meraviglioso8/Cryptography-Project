@@ -29,15 +29,17 @@ def receive():
             message = client.recv(1024)
             if message.startswith(b"FACTOR:"):
             # Received the encrypted factor, save it to file
-                factor = message[7:]
-                with open("factor", "wb") as f:
-                    f.write(bytes.fromhex(factor.decode()))
+                username = message.decode().split(':')[1].split('/')[0]
+                factor = message.decode().split('(')[1].split(')')[0]
+                filename = hashlib.sha256(username.encode()).hexdigest()
+                with open(str(filename[:10]), "wb") as f:
+                    f.write(bytes.fromhex(factor))
                 print("factor saved to file. input OK for confirmation")
             #start generating OTP ass username + password is valid
             elif message.startswith(b"Start"):
                 username = message.decode()[5:]
                 log_time = int(time.time())
-                thread = threading.Thread(target=reqOTP,args=("factor",log_time))
+                thread = threading.Thread(target=reqOTP,args=(username,log_time))
                 thread.start()
                 print("Please open OTP file. Note that OTP only valid in a small amount of time.")
             #stop generate OTP as login successfully
@@ -54,13 +56,15 @@ def receive():
             client.close()
             break
 def reqOTP(username,log_time):
-    f= open(username, "rb")
+    filename = hashlib.sha256(username.encode()).hexdigest()
+    f= open(str(filename[:10]), "rb")
     factor = hexlify(f.read())
     
     #generate first time
     global otp
     otp = generate_totp(factor.decode())
-    with open(username + "_OTP", "w") as f:
+    filename = hashlib.sha256(username.encode()).hexdigest()
+    with open(str(filename[:10]) + "_OTP", "w") as f:
         f.write(otp)
 
     while True:
@@ -109,7 +113,6 @@ def main():
         # check the cert if it is CA, not CA close client
         if cert:
             print("Server cert verified")
-
             receive_thread = threading.Thread(target=receive)
             receive_thread.start()
             send_thread = threading.Thread(target=send)
