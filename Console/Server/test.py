@@ -114,7 +114,21 @@ def getPermission(role):
                 }
     return''.join([bin(value)[2:].zfill(1) for value in permissions.values()])
 
-cur.execute("SELECT factor FROM userInfo WHERE username = %s", ['hehe'])
-data = ast.literal_eval(cur.fetchone()[0])
-factor = ast.literal_eval(getDecryptData(data))
-print("CURRENT USER FACTOR:"+factor[1])
+factor = generateFactor('mera')
+haha = "FACTOR:11111101011110111110"
+print(haha[7:])
+encfactor = str(encrypt(str(factor)))
+print("ENC FACTOR: ",encfactor)
+cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [encfactor,'mera'])
+factor = getDecryptData(ast.literal_eval(encfactor))
+encfactor = ast.literal_eval(encfactor)
+print ("GET CIPHERTEXT: ",(ast.literal_eval(getDecryptData(encfactor)))[1])
+print(getPermission('normal'))
+
+cur.execute("SELECT factor FROM userInfo WHERE username = %s", ['mera'])
+result = cur.fetchone()
+message = "FACTOR:hoho/(7309374fc2ec4b7bf089d33824e54b29f44d)"
+username = message.split(':')[1].split('/')[0]
+factor = message.split('(')[1].split(')')[0]
+print(username)
+print(factor)

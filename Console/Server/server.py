@@ -44,8 +44,8 @@ server = context.wrap_socket(server, server_side=True)
 print("Server starting...")
 
 #set up database
-up.uses_netloc.append('rbzkziqg')
-url = up.urlparse('postgres://rbzkziqg:rGJI2QMcTMo7C6GGrC1f1X82FqysVz2H@satao.db.elephantsql.com/rbzkziqg')
+up.uses_netloc.append(os.getenv('DB_PASS'))
+url = up.urlparse(os.getenv('DB_URL'))
 conn = None
 cur = None
 tempOTP =''
@@ -60,6 +60,7 @@ try:
         )
 except Exception as error:
         print(error)
+cur = conn.cursor()
 
 
 
@@ -97,7 +98,7 @@ def getAES_KEY():
     command = f"sudo tpm2_unseal -c seal.ctx -p pcr:sha256:0,1,2,3"
     command_1 =  f"sudo tpm2_flushcontext -t"
     passw = check_output(command, shell = True)
-    run(command_1,shell=True)
+    check_output(command_1,shell=True)
     return passw.decode()[0:32]
 
 def generateFactor(username):
@@ -270,10 +271,8 @@ def login(client_socket):
             cur.close()
             return
         
-            # Retrieve the updated user information
+        # Retrieve the updated user information
 
-
-        
         factor = generateFactor(username)
         storedRecoveryCode = getRecoveryCode(factor[0])
         encRecvCode = ph.hash(storedRecoveryCode)
@@ -282,7 +281,7 @@ def login(client_socket):
         cur.execute("UPDATE userInfo SET recoverycode = %s, factor = %s,ipaddress = %s WHERE username = %s", [encRecvCode,encFactor,client_ip,username])
         conn.commit()
         client_socket.send("Change login location".encode())
-        client_socket.send(("FACTOR:"+factor[0]).encode())
+        client_socket.send(("FACTOR:" + username + '/'+'('+ str(factor[0])+')').encode())
         cur.execute("SELECT email FROM userInfo WHERE username = %s", [username])
         data = ast.literal_eval(cur.fetchone()[0])
         email = getDecryptData(data)
@@ -316,10 +315,25 @@ def login(client_socket):
             #check role using factor
             print(factor[1])
             if ((decryptFactor(factor[0],factor[1])[0:5]) == permission and role =="admin"):
+
                 client_socket.send("You are recognized as admin privilege, type /admincommandhelp to know more".encode())
+                factor = generateFactor(username)
+                client_socket.send(("FACTOR:" + username + '/'+'('+ str(factor[0])+')').encode())
+                encfactor = str(encrypt(str(factor)))
+                #UPDATE NEW FACTOR INTO DB
+                cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [encFactor,username])
+                conn.commit()
                 return adminConsole(client_socket)
+            
             elif (decryptFactor(factor[0],factor[1])[0:5] == permission):
+
                 client_socket.send("You are recognized as user privilege".encode())
+                factor = generateFactor(username)
+                client_socket.send(("FACTOR:" + username + '/'+'('+ str(factor[0])+')').encode())
+                encfactor = str(encrypt(str(factor)))
+                #UPDATE NEW FACTOR INTO DB
+                cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [encFactor,username])
+                conn.commit()
                 return
         else:
             cur.execute("INSERT INTO suspiciousTable (usernameSUSSY,ipaddress,logtime) VALUES (%s,%s,%s)", [username,client_ip,datetime.now()])
@@ -438,14 +452,13 @@ def register(client_socket):
         cur = conn.cursor()
         cur.execute("SELECT * FROM userInfo WHERE username = %s", [username])
         data = cur.fetchall()[0]
-        cur.close()
         if(len(data) > 0):
             client_socket.send("Username already existed! Try again.".encode())
             register(client_socket)
     except:
         pass
 
-
+    #check valid email format
     if(re.fullmatch(regex, email)):
         #check existed email:
         cur = conn.cursor()
@@ -473,8 +486,8 @@ def register(client_socket):
         cur.execute("UPDATE userInfo SET factor = %s , recoverycode = %s, ipaddress = %s WHERE username = %s",[encfactor, hashRecoveryCode, client_ip, username])
         conn.commit()
         cur.close()
-        client_socket.send(("FACTOR:" +factor[0]).encode())
-        client_socket.send(f"Register successfully! Please remember this recovery code: {recoveryCode}\n".encode())
+        client_socket.send(("FACTOR:" + username + '/'+'('+ str(factor[0])+')').encode())
+        client_socket.send(("Register successfully! Please remember this recovery code:"+ recoveryCode).encode())
         sendRecoveryCode(email, recoveryCode)
     else:
         client_socket.send("Your email is not valid. Try again".encode())
@@ -510,8 +523,13 @@ def forget(client_socket):
 
             factor = (ast.literal_eval(getDecryptData(ast.literal_eval(result[1]))))[1]
             email = getDecryptData(ast.literal_eval(result[2])).strip()
-            newRecoveryCode = getRecoveryCode(factor)
-            cur.execute("UPDATE userInfo SET password = %s, recoverycode = %s WHERE username = %s", [ph.hash(newpassword1), ph.hash(newRecoveryCode), username])
+            #REGEN recv code + factor 
+            newfactor = generateFactor(username)
+            client_socket.send(("FACTOR:" + username + '/'+'('+ str(factor[0])+')').encode())
+            encfactor = str(encrypt(str(factor)))
+            newRecoveryCode = getRecoveryCode(newfactor)
+
+            cur.execute("UPDATE userInfo SET password = %s, recoverycode = %s,factor = %s WHERE username = %s", [ph.hash(newpassword1), ph.hash(newRecoveryCode),encfactor, username])
             conn.commit()
             sendRecoveryCode(email, newRecoveryCode)
             client_socket.send("Password changed successfully".encode())
