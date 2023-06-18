@@ -71,29 +71,39 @@ def receive():
                 messagebox.showinfo("Error",message.decode())
             elif message.startswith(b"Your account has been locked."):
                 messagebox.showinfo("Error",message.decode())
+
             
             #Handle login from unknown location
             elif message.startswith(b"Login IP does not match the stored IP address"):
                 verifycode_panel()
             elif message.startswith(b"Invalid recovery code."):
                 messagebox.showinfo("Error",message.decode())
+                verifycode_window.destroy()
             elif message.startswith(b"Change login location"):
+                verifycode_window.destroy()
                 messagebox.showinfo("Error",message.decode())
             
             #stop generate OTP as login successfully
             elif message.startswith(b'Input your OTP'):
                 otp_panel()
             elif message.startswith(b"Invalid OTP code, you are added into suspicious table"):
-                messagebox.showinfo("Error",message.decode())   
+                messagebox.showinfo("Error",message.decode())
+                otp_window.destroy()
+
+   
             elif message.startswith(b"Login complete"):
+                login_window.destroy()
                 global stop_threads
                 stop_threads = True
                 print("Login complete")
             elif message.startswith(b"You are recognized as user privilege"):
+                otp_window.destroy()
                 messagebox.showinfo("Notification","You are recognized as user privilege")
             elif message.startswith(b"Your role was changed by the third party"):
+                otp_window.destroy()
                 messagebox.showinfo("Notification",message.decode())                                    
             elif message.startswith(b"You are recognized as admin privilege"):
+                otp_window.destroy()
                 messagebox.showinfo("Notification","You are recognized as admin privilege")
                 admin_panel()
                 
@@ -102,9 +112,14 @@ def receive():
                 passwordchange_panel()
             elif message.startswith(b"Your password did not match. Please try again"):
                 messagebox.showinfo("Error", message.decode())
+                change_window.destroy()
             elif message.startswith(b"Password changed successfully"):
+                if change_window is not None:
+                    change_window.destroy()
                 messagebox.showinfo("Success", message.decode())
             elif message.startswith(b"Wrong recovery code! Please try again"):
+                if change_window is not None:
+                    change_window.destroy()
                 messagebox.showinfo("Error", message.decode())
 
 #------------------------------------------HANDLE ADMIN PRIVILEGE -------------------------------------
@@ -221,7 +236,8 @@ def unlock_function():
     unlock_panel()
 
 #-------------------------------------------ALL REGISTRATION UI ---------------------------------
-def register_panel():       
+def register_panel():
+    global registration_window     
     registration_window = tk.Tk()
     registration_window.geometry("400x400")
     registration_window.title("Registration")
@@ -262,7 +278,8 @@ def register_button_clicked(username_entry, password_entry, email_entry):
     
 #---------------------------------------------ALL LOGIN UI--------------------------------
 
-def login_panel():       
+def login_panel():
+    global login_window       
     login_window = tk.Tk()
     login_window.geometry("400x400")
     login_window.title("Login")
@@ -329,16 +346,16 @@ def otp_panel():
 def verifycode_panel():
     global verifycode_window
     verifycode_window = tk.Tk()
-    verifycode_window.geometry("200x200")
+    verifycode_window.geometry("400x200")
     verifycode_window.title("Verify Code")
     
-    label = ctk.CTkLabel(verifycode_window, text="Enter verification code")
+    label = ctk.CTkLabel(verifycode_window, text="Enter verification code", width=200)
     label.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
     
     verifycode_entry = ctk.CTkEntry(verifycode_window, corner_radius=10)
     verifycode_entry.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
     
-    verifycode_button = ctk.CTkButton(master = verifycode_window,corner_radius=10, command =lambda: otp_button_clicked(verifycode_entry), text="Verify Code")
+    verifycode_button = ctk.CTkButton(master = verifycode_window,corner_radius=10, command =lambda: button_1input_clicked(verifycode_entry), text="Verify Code")
     verifycode_button.place(relx=0.5, rely=0.6, anchor=tk.CENTER)
     verifycode_window.mainloop() 
     
@@ -369,6 +386,7 @@ def forget_panel():
 #--------------------------------------------------ALL PASSWORD CHANGE UI-----------------------------------------------
 
 def passwordchange_panel():
+    global change_window
     change_window = tk.Tk()
     change_window.geometry("400x400")
     change_window.title("New Password")
@@ -380,7 +398,7 @@ def passwordchange_panel():
     pw1_entry.place(relx=0.5, rely=0.2, anchor=tk.CENTER)
 
     # Recovery code input
-    pw2_label = ctk.CTkLabel(change_window, text="Confirm your password:")
+    pw2_label = ctk.CTkLabel(change_window, text="Confirm your password:", width = 250)
     pw2_label.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
     pw2_entry = ctk.CTkEntry(change_window,corner_radius=10)
     pw2_entry.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
@@ -394,19 +412,21 @@ def passwordchange_panel():
 #---------------------------------ALL UI FOR ADMIN PRIVILEGE----------------------------------------------------
 
 def admin_panel():
+    global admin_tk
     admin_tk = tk.Tk()
     admin_tk.geometry("400x400")
-    admin_tk.title("Client")
+    admin_tk.title("Admin")
     
-    buttonc_changeprivilege = ctk.CTkButton(master=admin_tk, corner_radius=10, command=changeprivilege_function, text = "Change privilege")
+    buttonc_changeprivilege = ctk.CTkButton(master=admin_tk, corner_radius=10, command=lambda:changeprivilege_function, text = "Change privilege", width = 150)
     buttonc_changeprivilege.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
 
-    button_delete = ctk.CTkButton(master=admin_tk, corner_radius=10, command=delete_function, text = "Delete")
+    button_delete = ctk.CTkButton(master=admin_tk, corner_radius=10, command= lambda: delete_function, text = "Delete")
     button_delete.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
-    button_unlock = ctk.CTkButton(master=admin_tk, corner_radius=10, command=unlock_function, text = "Unlock")
+    button_unlock = ctk.CTkButton(master=admin_tk, corner_radius=10, command= lambda: unlock_function, text = "Unlock")
     button_unlock.place(relx=0.5, rely=0.7, anchor=tk.CENTER)
-
+    admin_tk.mainloop()
+    
 def changeprivilege_panel():
     global changeprivilege_window
     changeprivilege_window = tk.Tk()
@@ -414,13 +434,13 @@ def changeprivilege_panel():
     changeprivilege_window.title("Privilege")
 
     # Username input
-    username_label = ctk.CTkLabel(changeprivilege_window, text="Enter username to change privilege:")
+    username_label = ctk.CTkLabel(changeprivilege_window, text="Enter username to change privilege:", width = 300)
     username_label.place(relx=0.5, rely=0.1, anchor=tk.CENTER)
     username_entry = ctk.CTkEntry(changeprivilege_window, corner_radius=10)
     username_entry.place(relx=0.5, rely=0.2, anchor=tk.CENTER)
 
     # Role input
-    role_label = ctk.CTkLabel(changeprivilege_window, text="Enter role(admin or normal):")
+    role_label = ctk.CTkLabel(changeprivilege_window, text="Enter role(admin or normal):",width = 200)
     role_label.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
     role_entry = ctk.CTkEntry(changeprivilege_window,corner_radius=10)
     role_entry.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
@@ -433,11 +453,11 @@ def changeprivilege_panel():
 def delete_panel():
     global delete_window
     delete_window = tk.Tk()
-    delete_window.geometry("200x200")
+    delete_window.geometry("400x200")
     delete_window.title("Delete User")
 
     # Username input
-    username_label = ctk.CTkLabel(delete_window, text="Enter username to delete:")
+    username_label = ctk.CTkLabel(delete_window, text="Enter username to delete:", width=250)
     username_label.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
     username_entry = ctk.CTkEntry(delete_window, corner_radius=10)
     username_entry.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
@@ -450,11 +470,11 @@ def delete_panel():
 def unlock_panel():
     global unlock_window
     unlock_window = tk.Tk()
-    unlock_window.geometry("200x200")
+    unlock_window.geometry("400x200")
     unlock_window.title("Unlock User")
 
     # Username input
-    username_label = ctk.CTkLabel(unlock_window, text="Enter username to unlock:")
+    username_label = ctk.CTkLabel(unlock_window, text="Enter username to unlock:", width =250)
     username_label.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
     username_entry = ctk.CTkEntry(unlock_window, corner_radius=10)
     username_entry.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
