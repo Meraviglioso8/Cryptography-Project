@@ -132,3 +132,7 @@ username = message.split(':')[1].split('/')[0]
 factor = message.split('(')[1].split(')')[0]
 print(username)
 print(factor)
+code = "$argon2id$v=19$m=65536,t=3,p=4$WN8QB6Mg0UiOohdk89xYLg$SvBCnXyDoO/NJrTUeZ0yuYiv6vfpc/wxo8VHHhc1t2A"
+ph = PasswordHasher()
+verifyValid = ph.verify(str(code), "c1a0ce")
+print(verifyValid)

@@ -321,7 +321,7 @@ def login(client_socket):
                 client_socket.send(("FACTOR:" + username + '/'+'('+ str(factor[0])+')').encode())
                 encfactor = str(encrypt(str(factor)))
                 #UPDATE NEW FACTOR INTO DB
-                cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [encFactor,username])
+                cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [encfactor,username])
                 conn.commit()
                 return adminConsole(client_socket)
             
@@ -332,7 +332,7 @@ def login(client_socket):
                 client_socket.send(("FACTOR:" + username + '/'+'('+ str(factor[0])+')').encode())
                 encfactor = str(encrypt(str(factor)))
                 #UPDATE NEW FACTOR INTO DB
-                cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [encFactor,username])
+                cur.execute("UPDATE userInfo SET factor = %s WHERE username = %s", [encfactor,username])
                 conn.commit()
                 return
             else:
@@ -483,6 +483,7 @@ def register(client_socket):
         factor = generateFactor(username)
         encfactor = str(encrypt(str(factor)))
         recoveryCode = getRecoveryCode(factor[0])
+        print(recoveryCode)
         hashRecoveryCode = ph.hash(recoveryCode)
         client_ip = client_socket.getpeername()[0]
         print("CURRENT USER FACTOR: ",factor[0])
@@ -510,18 +511,23 @@ def forget(client_socket):
     cur.execute("SELECT recoverycode, factor, email FROM userInfo WHERE username = %s", [username])
     result = cur.fetchone()
     storedRecoveryCode = result[0]
+    print(storedRecoveryCode)
 
     #verify RecoveryCode
     try:
-        verifyValid = ph.verify(str(storedRecoveryCode), recoverycode)
+        verifyValid = ph.verify(storedRecoveryCode, recoverycode)
+        cur = conn.cursor()
         cur.execute("SELECT role FROM userInfo Where username = %s", [username])
         #check role from factor
 
         role = cur.fetchone()[0]
         permission = getPermission(role)
-        factor = (ast.literal_eval(getDecryptData(ast.literal_eval(result[1]))))[1]
+        data = ast.literal_eval(result[1])
+        factor = ast.literal_eval(getDecryptData(data))
+        print(factor)
 
         if ((decryptFactor(factor[0],factor[1])[0:5]) == permission):
+            client_socket.send("Enter your new password: ".encode())
             newpassword1 = client_socket.recv(1024).decode()
             client_socket.send("Please confirm your password: ".encode())
             newpassword2 = client_socket.recv(1024).decode()
@@ -531,19 +537,17 @@ def forget(client_socket):
         
         if newpassword1 != newpassword2:
             client_socket.send("Your password did not match. Please try again".encode())
-            cur.close()
             return
         else:
             #extract factor and email when have verify success only
-
-            factor = (ast.literal_eval(getDecryptData(ast.literal_eval(result[1]))))[1]
             email = getDecryptData(ast.literal_eval(result[2])).strip()
+            
             #REGEN recv code + factor 
             newfactor = generateFactor(username)
-            client_socket.send(("FACTOR:" + username + '/'+'('+ str(factor[0])+')').encode())
-            encfactor = str(encrypt(str(factor)))
-            newRecoveryCode = getRecoveryCode(newfactor)
-
+            client_socket.send(("FACTOR:" + username + '/'+'('+ str(newfactor[0])+')').encode())
+            encfactor = str(encrypt(str(newfactor)))
+            newRecoveryCode = getRecoveryCode(newfactor[0])
+            cur = conn.cursor()
             cur.execute("UPDATE userInfo SET password = %s, recoverycode = %s,factor = %s WHERE username = %s", [ph.hash(newpassword1), ph.hash(newRecoveryCode),encfactor, username])
             conn.commit()
             sendRecoveryCode(email, newRecoveryCode)
@@ -552,7 +556,8 @@ def forget(client_socket):
             return
         
     #Verify Fail
-    except:
+    except Exception as e:
+        print(e)
         client_ip = client_socket.getpeername()[0]
         client_socket.send("Wrong recovery code! Please try again".encode())
         cur.execute("INSERT INTO suspiciousTable (usernameSUSSY,ipaddress,logtime) VALUES (%s,%s,%s)", [username,client_ip,datetime.now()])
