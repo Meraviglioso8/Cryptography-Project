@@ -91,15 +91,16 @@ def receive():
    
             elif message.startswith(b"Login complete"):
                 login_window.destroy()
-                messagebox.showinfo("Notification",message.decode())
+                print(message.decode())
             elif message.startswith(b"You are recognized as user privilege"):
                 messagebox.showinfo("Notification","You are recognized as user privilege")
             elif message.startswith(b"Your role was changed by the third party"):
                 messagebox.showinfo("Notification",message.decode())
                 login_function()
             elif message.startswith(b"You are recognized as admin privilege"):
-                messagebox.showinfo("Notification","You are recognized as admin privilege")
-                admin_panel()
+                print(message.decode())
+                admin_thread = threading.Thread(target=admin_panel)
+                admin_thread.start()
                 
 #-----------------------------------------HANDLE FORGET MESSAGE---------------------------------------
             elif message.startswith(b"Enter your new password:"):
@@ -117,32 +118,26 @@ def receive():
 #------------------------------------------HANDLE ADMIN PRIVILEGE -------------------------------------
 #Change privilege
             elif message.startswith(b"Changed role to"):
-                if changeprivilege_window is not None:
-                    otp_window.destroy()
                 messagebox.showinfo("Success", message.decode())
+                changeprivilege_window.destroy()
             elif message.startswith(b"No user found"):
-                if changeprivilege_window is not None:
-                    otp_window.destroy()
                 messagebox.showinfo("Error", message.decode())
+                changeprivilege_window.destroy()
 #Delete user
             elif b"deleted" in message:
-                if delete_window is not None:
-                    otp_window.destroy()
                 messagebox.showinfo("Success", message.decode())
+                delete_window.destroy()
             elif b"doesn't exist" in message:
-                if delete_window is not None:
-                    otp_window.destroy()
                 messagebox.showinfo("Error", message.decode())
+                delete_window.destroy()                
 #Unlock user
             elif b"unlocked" in message:
-                if unlock_window is not None:
-                    otp_window.destroy()
                 messagebox.showinfo("Success", message.decode())
+                unlock_window.destroy()            
             elif b"is not in Suspected" in message:
-                if unlock_window is not None:
-                    otp_window.destroy()
                 messagebox.showinfo("Error", message.decode())
-                
+                unlock_window.destroy()
+                                
 #------------------------------------------------------------------------------------------------------------------
             else:
                 # Received a regular message, print it to the console
@@ -198,16 +193,19 @@ def forget_function():
     
 #for admin privilege    
 def changeprivilege_function():
+    change_thread = threading.Thread(target=changeprivilege_panel)
+    change_thread.start()
     client.send("/change".encode())
-    changeprivilege_panel()
-    
+
 def delete_function():
+    delete_thread = threading.Thread(target=delete_panel)
+    delete_thread.start()
     client.send("/delete".encode())
-    delete_panel()
-    
+   
 def unlock_function():
+    unlock_thread = threading.Thread(target=unlock_panel)
+    unlock_thread.start()
     client.send("/unlock".encode())
-    unlock_panel()
 
 #-------------------------------------------ALL REGISTRATION UI ---------------------------------
 def register_panel():
@@ -415,18 +413,17 @@ def admin_panel():
     admin_tk.geometry("400x400")
     admin_tk.title("Admin")
     
-    buttonc_changeprivilege = ctk.CTkButton(master=admin_tk, corner_radius=10, command=lambda:changeprivilege_function, text = "Change privilege", width = 150)
-    buttonc_changeprivilege.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
+    button_changeprivilege = ctk.CTkButton(master=admin_tk, corner_radius=10, command=changeprivilege_function, text = "Change privilege", width = 150)
+    button_changeprivilege.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
 
-    button_delete = ctk.CTkButton(master=admin_tk, corner_radius=10, command= lambda: delete_function, text = "Delete")
+    button_delete = ctk.CTkButton(master=admin_tk, corner_radius=10, command=delete_function, text = "Delete")
     button_delete.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
-    button_unlock = ctk.CTkButton(master=admin_tk, corner_radius=10, command= lambda: unlock_function, text = "Unlock")
+    button_unlock = ctk.CTkButton(master=admin_tk, corner_radius=10, command=unlock_function, text = "Unlock")
     button_unlock.place(relx=0.5, rely=0.7, anchor=tk.CENTER)
     admin_tk.mainloop()
     
 def changeprivilege_panel():
-    client.send("/change".encode())
     global changeprivilege_window
     changeprivilege_window = tk.Tk()
     changeprivilege_window.geometry("400x400")
@@ -445,12 +442,13 @@ def changeprivilege_panel():
     role_entry.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
     
     # change button
-    change_button = ctk.CTkButton(master = changeprivilege_window,corner_radius=10, command =lambda: button_2input_clicked(username_entry,role_entry), text="Change")
+    change_button = ctk.CTkButton(master = changeprivilege_window,corner_radius=10, command = lambda: button_2input_clicked(username_entry,role_entry), text="Change")
     change_button.place(relx=0.5, rely=0.8, anchor=tk.CENTER)
     changeprivilege_window.mainloop()
+    
+
 
 def delete_panel():
-    client.send("/delete".encode())
     global delete_window
     delete_window = tk.Tk()
     delete_window.geometry("400x200")
@@ -463,12 +461,12 @@ def delete_panel():
     username_entry.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
     
     # change button
-    change_button = ctk.CTkButton(master = delete_window,corner_radius=10, command =lambda: button_1input_clicked(username_entry), text="Delete")
+    change_button = ctk.CTkButton(master = delete_window,corner_radius=10, command = lambda: button_1input_clicked(username_entry), text="Delete")
     change_button.place(relx=0.5, rely=0.7, anchor=tk.CENTER)
     delete_window.mainloop()
-       
+
+              
 def unlock_panel():
-    client.send("/unlock".encode())
     global unlock_window
     unlock_window = tk.Tk()
     unlock_window.geometry("400x200")
@@ -481,10 +479,11 @@ def unlock_panel():
     username_entry.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
     
     # change button
-    change_button = ctk.CTkButton(master = unlock_window,corner_radius=10, command =lambda: button_1input_clicked(username_entry), text="Unlock")
+    change_button = ctk.CTkButton(master = unlock_window,corner_radius=10, command = lambda: button_1input_clicked(username_entry), text="Unlock")
     change_button.place(relx=0.5, rely=0.7, anchor=tk.CENTER)
     unlock_window.mainloop()
-    
+ 
+        
 def main():
     try:
         client.do_handshake()
