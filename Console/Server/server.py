@@ -256,7 +256,7 @@ def login(client_socket):
         recoveryCode = client_socket.recv(1024).decode()
         try:
             verifyValid = ph.verify(str(storedRecoveryCode),recoveryCode)
-
+            client_socket.send("Change login location".encode())
         except:
             client_socket.send("Invalid recovery code. Please try login again.".encode())
             cur.execute("INSERT INTO suspiciousTable (usernameSUSSY,ipaddress,logtime) VALUES (%s,%s,%s)", [username,client_ip,datetime.now()])
@@ -280,7 +280,7 @@ def login(client_socket):
 
         cur.execute("UPDATE userInfo SET recoverycode = %s, factor = %s,ipaddress = %s WHERE username = %s", [encRecvCode,encFactor,client_ip,username])
         conn.commit()
-        client_socket.send("Change login location".encode())
+        
         client_socket.send(("FACTOR:" + username + '/'+'('+ str(factor[0])+')').encode())
         cur.execute("SELECT email FROM userInfo WHERE username = %s", [username])
         data = ast.literal_eval(cur.fetchone()[0])

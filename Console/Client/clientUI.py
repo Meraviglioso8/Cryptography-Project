@@ -73,14 +73,11 @@ def receive():
 
             
             #Handle login from unknown location
-            elif message.startswith(b"Login IP does not match the stored IP address"):
+            elif message.startswith(b"Login IP does not match"):
                 verifycode_panel()
             elif message.startswith(b"Invalid recovery code."):
                 messagebox.showinfo("Error",message.decode())
-                verifycode_window.destroy()
-                login_window.destroy()
             elif message.startswith(b"Change login location"):
-                verifycode_window.destroy()
                 messagebox.showinfo("Error",message.decode())
             
             #stop generate OTP as login successfully
@@ -335,10 +332,19 @@ def verifycode_panel():
     verifycode_entry = ctk.CTkEntry(verifycode_window, corner_radius=10)
     verifycode_entry.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
     
-    verifycode_button = ctk.CTkButton(master = verifycode_window,corner_radius=10, command =lambda: button_1input_clicked(verifycode_entry), text="Verify Code")
+    verifycode_button = ctk.CTkButton(master = verifycode_window,corner_radius=10, command =lambda: verify_clicked(verifycode_entry), text="Verify Code")
     verifycode_button.place(relx=0.5, rely=0.6, anchor=tk.CENTER)
     verifycode_window.mainloop() 
     
+def verify_clicked(username_entry):
+    try:
+        username = username_entry.get()
+        client.send(username.encode())
+        if verifycode_window is not None:
+            verifycode_window.destroy()
+            messagebox.showinfo("Announcement", "Recovery sent successfully")
+    except Exception as ex:
+        messagebox.showinfo("Error", ex.message)
 #-----------------------------------------------ALL FORGET UI-----------------------------------------
 def forget_panel():  
     global forget_window     
