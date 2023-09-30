@@ -1,4 +1,4 @@
-# A MULTI-FACTOR AUTHENTICATION-BASED IN CLOUD APPLICATIONS #
+# A MULTI-FACTOR AUTHENTICATION-BASED AUTHENTICAION SCHEME IN CLOUD APPLICATIONS #
 
 ## 1. **Abstract** ##
 
@@ -76,7 +76,7 @@ organization due to the privacy and security concerns. Service providers must en
 | :-: | :-: |
 |**Research on Algorithms, Cloud Platform, Environments, Libraries**|Team|
 |**Controlling implementation of the architecture of the proposed scheme model**|Huyền|
-|**Implementing Database **|Hưng|
+|**Implementing Database**|Hưng|
 |**Implementing the Application, Mobile App**|Huyền, Kiệt|
 |**Documenting the Demo application**|Huyền|
 |**Presenting the Demo**|Team|
