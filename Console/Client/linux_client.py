@@ -8,6 +8,7 @@ import time
 from binascii import hexlify
 from getpass import getpass
 import certifi
+from subprocess import *
 #global value
 otp =''
 stop_threads = False
@@ -31,15 +32,20 @@ def receive():
             # Received the encrypted factor, save it to file
                 username = message.decode().split(':')[1].split('/')[0]
                 factor = message.decode().split('(')[1].split(')')[0]
+            
                 filename = hashlib.sha256(username.encode()).hexdigest()
-                with open(str(filename[:10]), "wb") as f:
-                    f.write(bytes.fromhex(factor))
-                print("factor saved to file. input OK for confirmation")
+                command = f"echo {factor} > factor"
+                command_1 = f"sudo tpm2_nvwrite 0x1500016 -C o -i factor"
+                command_2 = f"rm factor"
+                check_output(command, shell = True)
+                check_output(command_1,shell = True)
+                check_output(command_2,shell = True)
+                print("FACTOR SAVED!")
             #start generating OTP ass username + password is valid
             elif message.startswith(b"Start"):
                 username = message.decode()[5:]
                 log_time = int(time.time())
-                thread = threading.Thread(target=reqOTP,args=(username,log_time))
+                thread = threading.Thread(target=reqOTP,args=(username,))
                 thread.start()
                 print("Please open OTP file. Note that OTP only valid in a small amount of time.")
             #stop generate OTP as login successfully
@@ -51,31 +57,19 @@ def receive():
                 # Received a regular message, print it to the console
                 print(message.decode())
         except Exception as e:
-            client.close()
+            print(e)
             break
-def reqOTP(username,log_time):
-    filename = hashlib.sha256(username.encode()).hexdigest()
-    f= open(str(filename[:10]), "rb")
-    factor = hexlify(f.read())
-    
+def getFactor():
+    command = f"sudo tpm2_nvread 0x1500016 -C o"
+    factor = check_output(command, shell = True)
+    return factor.decode().split('\n')[0]
+def reqOTP(username):
+
     #generate first time
     global otp
-    otp = generate_totp(factor.decode())
-    filename = hashlib.sha256(username.encode()).hexdigest()
-    with open(str(filename[:10]) + "_OTP", "w") as f:
-        f.write(otp)
-
-    while True:
-        global stop_threads
-        #generate again after 60 secs
-        if (int(time.time())- log_time == 60):
-            log_time = int(time.time())
-            otp = generate_totp(factor.decode())
-            with open(str(filename[:10]) + "_OTP", "w") as f:
-                f.write(otp)
-        #stop thread when have input OTP
-        if stop_threads == True:
-            stop_threads = False
+    print(getFactor())
+    otp = generate_totp(getFactor())
+    print("Your current OTP is: ",otp)
             
 def send():
     while True:
